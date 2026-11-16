@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NAPALM Check In</title>
+<meta name="description" content="A two minute end of day check in for mood, stress and triggers.">
+<meta name="theme-color" content="#283146">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NAPALM">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Palette from The Stories We Carry: navy ground, terracotta accent, cream highlight, peach small caps.
+     Layout: one phone width column, sticky header with Get support, bottom tab bar.
+     Check in shows one question per screen with a sticky action bar in thumb reach. Single theme by design. */
+  --bg:#283146; --surface:#2f3a52; --surface-2:#36425c; --ink:#ffffff; --ink-2:#b4bdcf; --line:#46546f;
+  --accent:#c97b58; --accent-ink:#1f2638; --accent-soft:#3c3a4a;
+  --cream:#fbf2ec; --cream-ink:#283146; --peach:#e8ab8c;
+  --warm:#c97b58; --warm-soft:#fbf2ec;
+  --mood:#3f9ad6; --stress:#cf7a50; --grid:#3d4a64;
+  --font:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+  --r:14px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{border-top:6px solid var(--accent);background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.45;-webkit-text-size-adjust:100%}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:28px}
+h1,h2{letter-spacing:-.01em}
+h2{font-size:22px}
+h3{font-size:18px}
+p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.small{font-size:15px}
+.app{max-width:600px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header.top{padding-top:calc(12px + env(safe-area-inset-top)) !important;position:sticky;top:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.16em;font-size:17px;color:var(--peach)}
+.brand small{display:block;font-weight:400;letter-spacing:0;font-size:13px;color:var(--ink-2)}
+.support-btn{min-height:48px;padding:0 16px;border-radius:999px;border:2px solid var(--accent);background:var(--cream);color:var(--cream-ink);font-weight:700}
+main{flex:1;padding:20px 16px 120px;display:flex;flex-direction:column;gap:20px}
+nav.tabs{padding-bottom:env(safe-area-inset-bottom);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line)}
+nav.tabs .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{min-height:64px;border:0;background:none;color:var(--ink-2);font-weight:700;font-size:16px;border-top:3px solid transparent}
+nav.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.banner{background:var(--cream);color:var(--cream-ink);border-left:6px solid var(--accent);border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.btn{min-height:60px;padding:0 22px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.warm{background:var(--cream);border-color:var(--accent);color:var(--cream-ink)}
+.btn.block{width:100%}
+.btn.small{min-height:48px;font-size:16px;padding:0 16px}
+.btn.link{border:0;background:none;color:var(--accent);min-height:48px;padding:0 8px;text-decoration:underline;text-underline-offset:3px}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.stack{display:flex;flex-direction:column;gap:12px}
+.hero-q{display:flex;flex-direction:column;gap:8px}
+.hero-q p{color:var(--ink-2)}
+.choice{display:grid;gap:14px}
+.choice .btn{min-height:72px;font-size:20px;width:100%}
+.choice .btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.scale{display:flex;flex-direction:column;gap:14px}
+.scale .big{font-size:64px;font-weight:700;line-height:1;text-align:center}
+.scale .big.unset{color:var(--ink-2);font-size:22px;font-weight:400;padding:21px 0}
+.anchors{display:flex;justify-content:space-between;align-items:center;color:var(--ink-2);font-size:15px;gap:8px}
+.anchors .end{display:flex;align-items:center;gap:8px}
+.emo{font-size:34px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;transition:transform .15s,opacity .15s;opacity:.45}
+.emo.on{opacity:1;transform:scale(1.25)}
+.bigrow{display:flex;align-items:center;justify-content:center;gap:16px;min-height:80px}
+.bigemo{font-size:52px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+input[type=range]{width:100%;height:48px;accent-color:var(--accent)}
+input[type=range].untouched{opacity:.45;filter:grayscale(1)}
+.numgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.numgrid button{min-height:56px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:20px}
+.numgrid button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stepper{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center}
+.stepper button{min-height:72px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:30px;font-weight:700}
+.stepper .val{text-align:center;font-size:40px;font-weight:700}
+.stepper .val.unset{font-size:20px;font-weight:400;color:var(--ink-2)}
+.flowbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.progress{height:6px;background:var(--grid);border-radius:3px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent)}
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.actionbar .in{max-width:568px;margin:0 auto;display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center}
+.actionbar .in .btn.primary{justify-self:end;min-width:140px}
+.catrow{border:2px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.catrow.on{border-color:var(--accent)}
+.cathead{width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;border:0;background:none;text-align:left;font-weight:700;font-size:18px}
+.toggle{flex:none;width:58px;height:34px;border-radius:999px;background:var(--grid);position:relative;transition:background .2s}
+.toggle::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.catrow.on .toggle{background:var(--accent)}
+.catrow.on .toggle::after{left:28px}
+.toggle-label{font-size:14px;color:var(--ink-2);font-weight:400;margin-right:6px}
+.catbody{padding:4px 16px 18px;display:flex;flex-direction:column;gap:16px}
+.catbody.opening{animation:open .2s ease}
+@keyframes open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.facet{display:flex;flex-direction:column;gap:8px}
+.facet .q{font-size:15px;color:var(--ink-2);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:48px;padding:0 16px;border-radius:999px;border:2px solid var(--line);background:var(--surface-2);font-size:16px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.addown{display:grid;grid-template-columns:1fr auto;gap:8px}
+.field{min-height:52px;border-radius:10px;border:2px solid var(--line);background:var(--surface);padding:10px 14px;width:100%}
+textarea.field{min-height:96px;resize:vertical}
+label.lbl{font-size:15px;font-weight:700;color:var(--ink-2)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg button{min-height:52px;border-radius:10px;border:2px solid var(--line);background:var(--surface-2);font-weight:700;font-size:16px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.review{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.review button{width:100%;min-height:60px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left}
+.review .k{color:var(--ink-2);font-size:15px}
+.review .v{font-weight:700;text-align:right}
+.sumlist{margin:0;display:flex;flex-direction:column}
+.sumlist div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sumlist dt{color:var(--ink-2)}
+.sumlist dd{margin:0;font-weight:700;text-align:right}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:4px}
+.tile .t{font-size:14px;color:var(--ink-2)}
+.tile .n{font-size:30px;font-weight:700}
+.tile .d{font-size:14px;color:var(--ink-2)}
+.seg-range{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg-range button{min-height:44px;border:0;border-radius:9px;background:none;font-weight:700;color:var(--ink-2)}
+.seg-range button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--ink-2);align-items:center}
+.legend i{display:inline-block;vertical-align:middle;margin-right:6px}
+.chartwrap{position:relative}
+.chartwrap svg{width:100%;height:auto;display:block;touch-action:pan-y}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);min-width:140px;display:none;z-index:5}
+.bars{display:flex;flex-direction:column;gap:6px}
+.barrow{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;min-height:48px;border:0;background:none;padding:0;text-align:left;width:100%}
+.barrow .track{height:22px;background:var(--grid);border-radius:4px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.barrow .lab{font-size:15px}
+.barrow .cnt{text-align:right;font-weight:700}
+.drill{background:var(--surface-2);border-radius:10px;padding:10px 14px;font-size:15px}
+.drill table{width:100%;border-collapse:collapse}
+.drill td{padding:6px 0;border-bottom:1px solid var(--line)}
+.drill td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.pattern{border-left:6px solid var(--accent)}
+.pattern .stat{font-size:20px;font-weight:700}
+.caveat{font-size:14px;color:var(--ink-2);font-style:italic}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.week div{background:var(--surface-2);border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;display:flex;flex-direction:column;gap:2px;min-height:84px}
+.week b{font-size:16px}
+.week .esc{font-size:12px;color:var(--peach)}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(5,10,14,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:600px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+.contact{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.contact .who{font-size:14px;color:var(--ink-2)}
+.contact a.btn{min-height:52px;min-width:150px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--cream);color:var(--cream-ink);border-left:6px solid var(--accent);padding:12px 18px;border-radius:12px;z-index:60;max-width:90%;font-size:16px}
+.svc-head{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
+.svc-ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--cream);color:var(--accent)}
+.svc-actions{display:grid;gap:10px}
+.svc-actions .btn,.contact .btn,.banner .btn{gap:10px}
+.disclaimer{font-size:15px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:12px}
+.taglist{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
+.taglist .contact{grid-template-columns:1fr auto}
+.empty{text-align:center;padding:24px 8px;color:var(--ink-2)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="layer"></div>
+<div id="live" class="toast" role="status" aria-live="polite" style="display:none"></div>
+<script>
+'use strict';
+/* ---------- Reference data ---------- */
+const CATS=[
+  {c:'SOCIAL',name:'Social media content',short:'Social media'},
+  {c:'LOCATION',name:'A location',short:'Location'},
+  {c:'SEEN',name:'Something seen, like on TV',short:'Something seen'},
+  {c:'SMELL',name:'Something smelt',short:'Something smelt'},
+  {c:'CROWD',name:'Crowds',short:'Crowds'},
+  {c:'FATIGUE',name:'Fatigue',short:'Fatigue'},
+  {c:'OTHER',name:'Something else',short:'Other'}
+];
+const CATNAME=Object.fromEntries(CATS.map(x=>[x.c,x.short]));
+const FACETS={
+  SOCIAL:[{f:'what',q:'What was it?',multi:1,own:1},{f:'platform',q:'Where did you see it? (optional)',multi:0}],
+  LOCATION:[{f:'where',q:'Where?',multi:1,own:1},{f:'event',q:'What happened?',multi:1,own:1}],
+  SEEN:[{f:'what',q:'What was it?',multi:1,own:1},{f:'source',q:'Seen on (optional)',multi:0}],
+  SMELL:[{f:'what',q:'What was it?',multi:1,own:1}],
+  CROWD:[{f:'where',q:'Where?',multi:1,own:1},{f:'duration',q:'How long? (optional)',multi:0}],
+  FATIGUE:[{f:'context',q:'Anything else about your sleep? (optional)',multi:1,own:0}],
+  OTHER:[{f:'what',q:'What was it?',multi:1,own:1}]
+};
+const PRESETS={
+  'SOCIAL.what':['News of conflict or war','Violence or injury footage','Accident or disaster','Death or loss','Abuse or assault story','Work related story','Argument or abuse directed at me'],
+  'SOCIAL.platform':['Facebook','Instagram','TikTok','X','YouTube','Reddit','News site'],
+  'LOCATION.where':['Workplace','Home','Hospital or clinic','Road or vehicle','Airport or aircraft','Military base','Public transport'],
+  'LOCATION.event':['Anniversary of an event','Similar scene to a past event','Encounter with a person','Incident or near miss','Being alone'],
+  'SEEN.what':['TV news','Film or series','Documentary','Video game','Real life incident','Uniform or equipment','Image or photo'],
+  'SEEN.source':['TV','Streaming','Cinema','In person'],
+  'SMELL.what':['Smoke','Fuel or exhaust','Burning','Blood or medical','Chemical or cleaning','Food','Alcohol'],
+  'CROWD.where':['Shopping centre','Public transport','Sporting event','Concert or festival','Airport','Queue or waiting room','Workplace gathering'],
+  'CROWD.duration':['Under 15 min','15 to 60 min','Over 1 hour'],
+  'FATIGUE.context':['Night shift','Broken sleep','Nightmare'],
+  'OTHER.what':['Loud noise','Conflict or argument','Physical pain','Anniversary','Conversation or reminder']
+};
+const CONTACTS=[
+  {name:'Emergency',num:'000',who:'If you or someone else is in immediate danger'},
+  {name:'Lifeline',num:'13 11 14',who:'Crisis support for anyone, 24/7'},
+  {name:'Open Arms',num:'1800 011 046',who:'Veterans, ADF members and families, 24/7'},
+  {name:'Defence All Hours Support Line',num:'1800 628 036',who:'ADF members and families, 24/7'},
+  {name:'13YARN',num:'13 92 76',who:'Aboriginal and Torres Strait Islander crisis support, 24/7'},
+  {name:'1800RESPECT',num:'1800 737 732',who:'Sexual assault, domestic and family violence'}
+];
+const SUPPORT=[
+  {name:'Lifeline',call:'13 11 14',text:'0477 13 11 14',hours:'24/7',who:'Crisis support for anyone, by phone or text.'},
+  {name:'Open Arms, Veterans and Families Counselling',call:'1800 011 046',hours:'24/7',who:'Free and confidential trauma and PTSD support for current and ex serving ADF members and their families.'},
+  {name:'Beyond Blue',call:'1300 22 4636',hours:'24/7',who:'General mental health support.'},
+  {name:'TIACS (This Is A Conversation Starter)',call:'0488 846 988',text:'0488 846 988',hours:'Monday to Friday, 8 am to 10 pm AEST. Closed public holidays.',who:'Free, confidential phone and text counselling for tradies, truckies, farmers, miners, apprentices and their loved ones.'},
+  {name:'Blue Knot Helpline',call:'1300 657 380',hours:'7 days, 9 am to 5 pm AEST/AEDT. Not a crisis line.',who:'Trauma informed specialist support for complex trauma and abuse.'},
+  {name:'13YARN',call:'13 92 76',hours:'24/7',who:'Crisis support for Aboriginal and Torres Strait Islander people.'}
+];
+const ICON_PHONE='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02z"/></svg>';
+const ICON_TEXT='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8.5L4 22V5a2 2 0 0 1 2-2z" transform="translate(-2 0)"/></svg>';
+const digits=n=>n.replace(/\s/g,'');
+const DISCLAIMER='NAPALM helps you track how you feel and what affects you. It is not a medical device and does not diagnose, treat or replace care from a qualified health professional. If you are in danger or need urgent help, call 000.';
+const INT_LABEL={mild:'Mild',moderate:'Moderate',strong:'Strong'};
+/* Emoji at each end of the sleep, mood and stress questions. The face for the current answer lights up. */
+const EMO={
+  sleep:{lo:'\u{1F629}',hi:'\u{1F603}',band:v=>v==null?null:v<4?'lo':v>8?'hi':null},
+  mood:{lo:'\u{1F622}',hi:'\u{1F606}',mid:'\u{1F642}',five:'\u{1F610}',band:v=>v==null?null:v<5?'lo':v===5?'five':v<=8?'mid':'hi'},
+  stress:{lo:'\u{1F60A}',hi:'\u{1F620}',mid:'\u{1F610}',band:v=>v==null?null:v<=3?'lo':v<=7?'mid':'hi'}
+};
+const emoChar=(f,v)=>{const e=EMO[f],b=e.band(v);return b?e[b]:''};
+function syncEmoji(f){const v=state.draft.d[f];const b=EMO[f].band(v);document.querySelectorAll(`[data-emo="${f}"]`).forEach(el=>el.classList.toggle('on',el.dataset.end===b));document.querySelectorAll(`[data-bigemo="${f}"]`).forEach(el=>el.textContent=emoChar(f,v))}
+
+/* ---------- Dates (a check in before 4 am counts for the previous day) ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseKey=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=parseKey(k);d.setDate(d.getDate()+n);return ymd(d)};
+function todayKey(){const d=new Date();if(d.getHours()<4)d.setDate(d.getDate()-1);return ymd(d)}
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate=k=>{const d=parseKey(k);return DOW[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]};
+const fmtShort=k=>{const d=parseKey(k);return d.getDate()+' '+MON[d.getMonth()]};
+
+/* ---------- Helpers ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const r1=v=>v==null?'':(Math.round(v*10)/10).toFixed(1);
+const pct=v=>Math.round(v*100)+'%';
+const norm=s=>s.toLowerCase().replace(/center/g,'centre').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+const uid=()=>'u_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function ranks(a){const idx=a.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]);const r=new Array(a.length);let i=0;while(i<idx.length){let j=i;while(j+1<idx.length&&idx[j+1][0]===idx[i][0])j++;const avg=(i+j)/2+1;for(let k=i;k<=j;k++)r[idx[k][1]]=avg;i=j+1}return r}
+function pearson(x,y){const mx=mean(x),my=mean(y);let sxy=0,sx=0,sy=0;for(let i=0;i<x.length;i++){sxy+=(x[i]-mx)*(y[i]-my);sx+=(x[i]-mx)**2;sy+=(y[i]-my)**2}return sx&&sy?sxy/Math.sqrt(sx*sy):0}
+const spearman=(x,y)=>pearson(ranks(x),ranks(y));
+function strength(r){const a=Math.abs(r);return a<0.2?'little or no':a<0.4?'a weak':a<0.6?'a moderate':'a strong'}
+
+/* ---------- Storage: on this device only, optional passcode encryption ---------- */
+const KEY='napalm.v1',EKEY='napalm.enc';
+let memStore={},storageOK=true;
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){storageOK=false;return memStore[k]||null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){storageOK=false;memStore[k]=v}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){delete memStore[k]}}
+const b64=u=>btoa(String.fromCharCode(...u));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let cryptoKey=null,saltB64=null;
+async function deriveKey(pass,salt){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+let saveTimer=null;
+function save(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,150)}
+async function persist(){
+  if(!state)return;
+  const json=JSON.stringify(state);
+  if(cryptoKey){
+    try{const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},cryptoKey,new TextEncoder().encode(json));lsSet(EKEY,JSON.stringify({salt:saltB64,iv:b64(iv),ct:b64(new Uint8Array(ct))}));lsDel(KEY)}catch(e){toast('Could not encrypt your data. It was not saved.')}
+  }else{lsSet(KEY,json);lsDel(EKEY)}
+}
+function freshState(){
+  const tags=[];
+  Object.entries(PRESETS).forEach(([k,list])=>{const [c,f]=k.split('.');list.forEach((label,i)=>tags.push({id:'p_'+c+'_'+f+'_'+i,c,f,label,n:norm(label),preset:true,hidden:false,uses:0,last:0}))});
+  return {v:1,accepted:false,demo:false,settings:{reminder:'20:30',contactName:'',contactPhone:''},checkins:{},tags,safety:{snoozeUntil:0,events:[]},draft:null};
+}
+let state=null;
+let ui={tab:'today',range:30,drill:null,sheet:null,after:null,exportText:'',confirmDelete:false,locked:false,lockErr:'',lockStep:null};
+const tagById=id=>state.tags.find(t=>t.id===id);
+
+/* ---------- Check in flow ---------- */
+function blankDraft(date){return {date,step:0,start:Date.now(),d:{mood:null,stress:null,started:null,anyTrigger:null,trig:{},sleep:null,note:'',skipped:[]}}}
+function steps(d){const s=['sleep','mood','stress','started','trigger'];if(d.anyTrigger===true)s.push('cats');s.push('review');return s}
+function startCheckin(){
+  const k=todayKey();
+  if(!state.draft||state.draft.date!==k){
+    const ex=state.checkins[k];
+    state.draft=blankDraft(k);
+    if(ex){state.draft.d=JSON.parse(JSON.stringify({mood:ex.mood,stress:ex.stress,started:ex.started,anyTrigger:ex.anyTrigger,trig:ex.trig||{},sleep:ex.sleep,note:ex.note||'',skipped:ex.skipped||[]}));state.draft.step=steps(state.draft.d).length-1;state.draft.editing=true}
+  }
+  ui.tab='checkin';save();render();
+}
+function curStep(){const dr=state.draft;const s=steps(dr.d);if(dr.step>=s.length)dr.step=s.length-1;return s[dr.step]}
+function go(delta){const dr=state.draft;const s=steps(dr.d);dr.step=Math.max(0,Math.min(s.length-1,dr.step+delta));save();render();window.scrollTo(0,0)}
+function markSkip(field){const d=state.draft.d;if(!d.skipped.includes(field))d.skipped.push(field)}
+function unSkip(field){const d=state.draft.d;d.skipped=d.skipped.filter(x=>x!==field)}
+function ensureTrig(c){const t=state.draft.d.trig;if(!t[c])t[c]={on:false,sel:[],intensity:null,place:''};return t[c]}
+
+function saveCheckin(){
+  const dr=state.draft,d=dr.d;
+  const trig={};
+  if(d.anyTrigger===true)Object.entries(d.trig).forEach(([c,v])=>{if(v.on)trig[c]={on:true,sel:v.sel.slice(),intensity:v.intensity,place:(v.place||'').slice(0,80)}});
+  ['mood','stress','started','anyTrigger','sleep'].forEach(f=>{if(d[f]==null&&!d.skipped.includes(f))d.skipped.push(f)});
+  const prev=state.checkins[dr.date];
+  const rec={date:dr.date,created:prev?prev.created:Date.now(),updated:Date.now(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone,
+    mood:d.mood,stress:d.stress,started:d.started,anyTrigger:d.anyTrigger,trig,
+    categoryUnknown:d.anyTrigger===true&&Object.keys(trig).length===0,
+    sleep:d.sleep,sleepSource:d.sleep==null?null:'manual',note:(d.note||'').slice(0,280),
+    secs:Math.round((Date.now()-dr.start)/1000),skipped:d.skipped.filter(f=>d[f]==null),safetyShown:false};
+  Object.values(trig).forEach(v=>v.sel.forEach(id=>{const t=tagById(id);if(t){t.uses=(t.uses||0)+1;t.last=Date.now()}}));
+  state.checkins[dr.date]=rec;state.draft=null;
+  if(safetyHit(dr.date)){rec.safetyShown=true;state.safety.events.push({at:Date.now(),date:dr.date,action:'shown'});ui.after='safety'}else ui.after='saved';
+  ui.tab='today';save();render();window.scrollTo(0,0);
+}
+const extreme=c=>c&&((c.stress!=null&&c.stress>=8)||(c.mood!=null&&c.mood<=2));
+function safetyHit(date){
+  if(Date.now()<state.safety.snoozeUntil)return false;
+  for(let i=0;i<3;i++){if(!extreme(state.checkins[addDays(date,-i)]))return false}
+  return true;
+}
+
+/* ---------- Rendering ---------- */
+const app=document.getElementById('app'),layer=document.getElementById('layer');
+function headerHTML(){return `<header class="top"><div class="brand">NAPALM<small>Daily stress and trigger check in</small></div><button class="support-btn" data-act="support" aria-haspopup="dialog">Get support</button></header>`}
+function tabsHTML(){const t=[['today','Today'],['insights','Insights'],['settings','Settings'],['support','Support']];return `<nav class="tabs" aria-label="Main"><div class="in">${t.map(([k,l])=>`<button data-act="tab" data-v="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('')}</div></nav>`}
+function demoBanner(){return state.demo?`<div class="banner"><span class="small">You are looking at 60 days of example data.</span><button class="btn small" data-act="demo-clear">Clear example data</button></div>`:''}
+
+function render(){
+  if(ui.locked){app.innerHTML=lockScreen();renderLayer();return}
+  if(!state.accepted){app.innerHTML=headerHTML()+`<main>${onboarding()}</main>`;renderLayer();return}
+  if(ui.tab==='checkin'&&state.draft){app.innerHTML=headerHTML()+`<main>${checkinScreen()}</main>`+actionBar();renderLayer();afterRender();return}
+  if(ui.tab==='checkin')ui.tab='today';
+  let body='';
+  if(ui.tab==='today')body=todayView();
+  else if(ui.tab==='insights')body=insightsView();
+  else if(ui.tab==='support')body=supportView();
+  else body=settingsView();
+  app.innerHTML=headerHTML()+`<main>${body}</main>`+tabsHTML();
+  renderLayer();afterRender();
+}
+
+function onboarding(){
+  return `<div class="hero-q"><h1>Welcome to NAPALM</h1><p>A two minute check in at the end of each day. It tracks mood, stress and what triggered you, then shows patterns you can act on.</p></div>
+  <div class="card"><h3>Before you start</h3><p>${esc(DISCLAIMER)}</p><p class="small muted">Your entries stay in this browser on this device. Nothing is sent anywhere. You can export or delete everything in Settings.</p></div>
+  <div class="stack"><button class="btn primary block" data-act="accept" data-v="fresh">I understand, start my first check in</button><button class="btn block" data-act="accept" data-v="demo">I understand, explore with example data</button></div>`;
+}
+
+function lockScreen(){
+  return headerHTML()+`<main><div class="hero-q"><h1>Unlock NAPALM</h1><p>Your data is encrypted. Enter your passcode.</p></div>
+  <form class="stack" data-form="unlock"><label class="lbl" for="unlock-pass">Passcode</label><input class="field num" id="unlock-pass" type="password" inputmode="numeric" autocomplete="current-password" required>
+  ${ui.lockErr?`<p role="alert" style="color:var(--peach)">${esc(ui.lockErr)}</p>`:''}<button class="btn primary block" type="submit">Unlock</button></form>
+  <p class="small muted">Forgot your passcode? Your data cannot be recovered without it. You can erase it and start again.</p>
+  <button class="btn link" data-act="lock-erase">Erase all data and start again</button></main>`;
+}
+
+/* Today */
+function todayView(){
+  const k=todayKey(),c=state.checkins[k],dr=state.draft&&state.draft.date===k?state.draft:null;
+  let top='';
+  if(ui.after==='saved'){top=`<div class="card" role="status"><h2>Saved. See your week.</h2><p class="muted">Thanks for checking in.</p><div class="row"><button class="btn small" data-act="tab" data-v="insights">Open insights</button><button class="btn small link" data-act="dismiss-after">Close</button></div></div>`}
+  const main=c?`<div class="card"><h2>Today, ${esc(fmtDate(k))}</h2>${summaryLines(c)}<button class="btn block" data-act="start">Edit today's check in</button></div>`
+    :`<div class="card"><h2>Evening check in</h2><p class="muted">${esc(fmtDate(k))}. About two minutes. You can skip anything.</p><button class="btn primary block" data-act="start">${dr?'Resume check in':'Start check in'}</button></div>`;
+  return demoBanner()+top+main+weekStrip()+`<p class="disclaimer">${esc(DISCLAIMER)}</p>`;
+}
+function summaryLines(c){
+  const trig=c.anyTrigger?Object.keys(c.trig).map(x=>CATNAME[x]).join(', ')||'Yes, type not recorded':c.anyTrigger===false?'None':'Skipped';
+  const rows=[['Mood',c.mood==null?'Skipped':c.mood+' / 10'],['Stress',c.stress==null?'Skipped':c.stress+' / 10'],['Day got harder',c.started==null?'Not sure':c.started?'Yes':'No'],['Triggers',trig],['Sleep',c.sleep==null?'Not entered':r1(c.sleep)+' h']];
+  return `<dl class="sumlist">${rows.map(([a,b])=>`<div><dt>${a}</dt><dd class="num">${esc(b)}</dd></div>`).join('')}</dl>`;
+}
+function weekStrip(){
+  const k=todayKey();const days=[];for(let i=6;i>=0;i--)days.push(addDays(k,-i));
+  return `<div class="card"><h3>Last 7 days</h3><div class="week">${days.map(d=>{const c=state.checkins[d];const dd=parseKey(d);return `<div><span class="muted">${DOW[dd.getDay()]}</span>${c?`<span>Mood <b class="num">${c.mood==null?'?':c.mood}</b></span><span>Stress <b class="num">${c.stress==null?'?':c.stress}</b></span>${c.started?'<span class="esc">Got harder</span>':''}`:'<span class="muted" style="margin-top:8px">No entry</span>'}</div>`}).join('')}</div></div>`;
+}
+
+/* Check in screens */
+function checkinScreen(){
+  const dr=state.draft,d=dr.d,s=steps(d),step=curStep(),i=dr.step;
+  const top=`<div class="stack" style="gap:8px"><div class="flowbar"><span class="small muted">Step ${i+1} of ${s.length}</span><span class="row" style="gap:4px">${i>=3&&step!=='review'?'<button class="btn link small" data-act="finish">Save and finish</button>':''}<button class="btn link small" data-act="close-flow">Close</button></span></div><div class="progress" aria-hidden="true"><span style="width:${Math.round((i+1)/s.length*100)}%"></span></div></div>`;
+  let body='';
+  if(step==='sleep')body=`<div class="hero-q"><h1>How many hours did you sleep last night?</h1><p>Optional. In the iPhone version this fills in from your Oura ring through Apple Health. Here, tap to enter it.</p></div>${stepper()}`;
+  if(step==='mood')body=scale('mood','How was your mood today?','0 Very low','10 Very good');
+  if(step==='stress')body=scale('stress','How stressed were you today?','0 None','10 Extreme');
+  if(step==='started')body=`<div class="hero-q"><h1>Did you start the day higher than you finished?</h1><p>Yes means the day got harder as it went on.</p></div><div class="choice">${yn('started',true,'Yes, it got harder')}${yn('started',false,'No')}</div>`;
+  if(step==='trigger')body=`<div class="hero-q"><h1>Did something trigger an adverse response today?</h1><p>For example, a strong reaction to something you saw, smelt, heard or went through.</p></div><div class="choice">${yn('anyTrigger',true,'Yes')}${yn('anyTrigger',false,'No')}</div>`;
+  if(step==='cats')body=catsScreen();
+  if(step==='review')body=reviewScreen();
+  return top+body;
+}
+function yn(field,val,label){return `<button class="btn" data-act="yn" data-f="${field}" data-v="${val}" aria-pressed="${state.draft.d[field]===val}">${label}</button>`}
+function scale(field,q,lo,hi){
+  const v=state.draft.d[field],E=EMO[field],b=E.band(v);
+  return `<div class="hero-q"><h1 id="q-${field}">${q}</h1></div><div class="scale">
+  <div class="bigrow"><span class="bigemo" data-bigemo="${field}" aria-hidden="true">${emoChar(field,v)}</span><div class="big num ${v==null?'unset':''}" id="big-${field}" aria-live="polite">${v==null?'Tap a number or slide':v}</div></div>
+  <input type="range" min="0" max="10" step="1" id="rng-${field}" data-range="${field}" value="${v==null?5:v}" class="${v==null?'untouched':''}" aria-labelledby="q-${field}" aria-valuetext="${v==null?'Not set':v+' out of 10'}">
+  <div class="anchors"><span class="end"><span class="emo ${b==='lo'?'on':''}" data-emo="${field}" data-end="lo" aria-hidden="true">${E.lo}</span>${lo}</span><span class="end">${hi}<span class="emo ${b==='hi'?'on':''}" data-emo="${field}" data-end="hi" aria-hidden="true">${E.hi}</span></span></div>
+  <div class="numgrid" role="group" aria-label="Choose a number">${Array.from({length:11},(_,n)=>`<button class="num" data-act="num" data-f="${field}" data-v="${n}" aria-pressed="${v===n}">${n}</button>`).join('')}</div></div>`;
+}
+function stepper(){
+  const v=state.draft.d.sleep,E=EMO.sleep,b=E.band(v);
+  return `<div class="stepper"><button data-act="sleep" data-v="-0.5" aria-label="Less sleep, minus half an hour">&minus;</button><div class="val num ${v==null?'unset':''}" aria-live="polite">${b?`<span class="bigemo" aria-hidden="true" style="font-size:40px;margin-right:8px">${E[b]}</span>`:''}${v==null?'Not entered':r1(v)+' h'}</div><button data-act="sleep" data-v="0.5" aria-label="More sleep, plus half an hour">+</button></div>
+  <div class="anchors"><span class="end"><span class="emo ${b==='lo'?'on':''}" aria-hidden="true">${E.lo}</span>Under 4 h</span><span class="end">Over 8 h<span class="emo ${b==='hi'?'on':''}" aria-hidden="true">${E.hi}</span></span></div>
+  <p class="small muted">Steps of half an hour, from 0 to 14 hours.</p>`;
+}
+function catsScreen(){
+  const d=state.draft.d;const on=CATS.filter(x=>d.trig[x.c]&&d.trig[x.c].on).length;
+  return `<div class="hero-q"><h1>What kind of trigger?</h1><p>Turn on any that apply. Everything inside is optional.</p></div>
+  <div class="stack">${CATS.map(x=>catRow(x)).join('')}</div>
+  <p class="small muted" aria-live="polite">${on===0?'None selected yet. You can also just tap Next.':on+(on===1?' trigger type added':' trigger types added')}</p>`;
+}
+function catRow(x){
+  const t=state.draft.d.trig[x.c];const on=!!(t&&t.on);
+  let body='';
+  if(on){
+    if(x.c==='FATIGUE')body+=`<div class="facet"><span class="q">Hours of sleep last night</span>${stepper()}</div>`;
+    FACETS[x.c].forEach(F=>{
+      const list=state.tags.filter(g=>g.c===x.c&&g.f===F.f&&(!g.hidden||t.sel.includes(g.id))).sort((a,b)=>(b.uses||0)-(a.uses||0));
+      body+=`<div class="facet"><span class="q">${F.q}</span><div class="chips">${list.map(g=>`<button class="chip" data-act="tag" data-c="${x.c}" data-f="${F.f}" data-t="${g.id}" data-multi="${F.multi}" aria-pressed="${t.sel.includes(g.id)}">${esc(g.label)}</button>`).join('')}</div>
+      ${F.own?`<div class="addown"><input class="field" id="own-${x.c}-${F.f}" maxlength="40" placeholder="Add your own" aria-label="Add your own: ${esc(F.q)}"><button class="btn small" data-act="add-tag" data-c="${x.c}" data-f="${F.f}">Add</button></div>`:''}</div>`;
+    });
+    if(x.c==='LOCATION')body+=`<div class="facet"><label class="q" for="place-${x.c}">Place name (optional)</label><input class="field" id="place-${x.c}" data-input="place" data-c="${x.c}" maxlength="80" value="${esc(t.place)}" placeholder="For example, Westfield Chermside"></div>`;
+    if(x.c!=='FATIGUE')body+=`<div class="facet"><span class="q">How strong was the response? (optional)</span><div class="seg">${['mild','moderate','strong'].map(v=>`<button data-act="int" data-c="${x.c}" data-v="${v}" aria-pressed="${t.intensity===v}">${INT_LABEL[v]}</button>`).join('')}</div></div>`;
+  }
+  return `<div class="catrow ${on?'on':''}"><button class="cathead" data-act="cat" data-c="${x.c}" aria-expanded="${on}"><span>${esc(x.name)}</span><span class="row" style="gap:4px;flex-wrap:nowrap"><span class="toggle-label">${on?'Yes':'No'}</span><span class="toggle" aria-hidden="true"></span></span></button>${on?`<div class="catbody ${ui.justOpened===x.c?'opening':''}">${body}</div>`:''}</div>`;
+}
+function reviewScreen(){
+  const d=state.draft.d,s=steps(d);
+  const trigTxt=d.anyTrigger===true?(Object.entries(d.trig).filter(([c,v])=>v.on).map(([c,v])=>CATNAME[c]+(v.sel.length?' ('+v.sel.map(id=>tagById(id)?tagById(id).label:'').join(', ')+')':'')).join('; ')||'Yes, type not recorded'):d.anyTrigger===false?'None':'Skipped';
+  const line=(k,v,step)=>`<li><button data-act="goto" data-v="${s.indexOf(step)}"><span class="k">${k}</span><span class="v num">${esc(v)}</span></button></li>`;
+  return `<div class="hero-q"><h1>Review and save</h1><p>Tap any line to change it.</p></div><ul class="review">
+  ${line('Sleep',d.sleep==null?'Not entered':r1(d.sleep)+' h','sleep')}
+  ${line('Mood',d.mood==null?'Skipped':d.mood+' / 10','mood')}
+  ${line('Stress',d.stress==null?'Skipped':d.stress+' / 10','stress')}
+  ${line('Day got harder',d.started==null?'Not sure':d.started?'Yes':'No','started')}
+  ${line('Triggers',trigTxt,d.anyTrigger===true?'cats':'trigger')}</ul>
+  <div class="stack" style="gap:6px"><label class="lbl" for="note">Anything else? (optional)</label><textarea class="field" id="note" data-input="note" maxlength="280" placeholder="A short note for yourself">${esc(d.note)}</textarea></div>`;
+}
+function actionBar(){
+  const dr=state.draft,step=curStep();
+  const skipLabel=step==='started'?'Not sure':'Skip';
+  const right=step==='review'?`<button class="btn primary" data-act="save">Save</button>`:`<button class="btn primary" data-act="next">Next</button>`;
+  return `<div class="actionbar"><div class="in"><button class="btn small" data-act="back" ${dr.step===0?'disabled':''}>Back</button>${step!=='review'&&step!=='cats'?`<button class="btn small" data-act="skip">${skipLabel}</button>`:'<span></span>'}${right}</div></div>`;
+}
+
+/* Insights */
+function rangeKeys(n){
+  const k=todayKey();let start;
+  if(n==='all'){const ks=Object.keys(state.checkins).sort();start=ks.length?ks[0]:k}else start=addDays(k,-(n-1));
+  const out=[];for(let d=start;d<=k;d=addDays(d,1))out.push(d);return out;
+}
+function prevKeys(keys){const n=keys.length;return keys.map(k=>addDays(k,-n))}
+function stats(keys){
+  const cs=keys.map(k=>state.checkins[k]).filter(Boolean);
+  const moods=cs.filter(c=>c.mood!=null).map(c=>c.mood),str=cs.filter(c=>c.stress!=null).map(c=>c.stress);
+  const ans=cs.filter(c=>c.started!=null),esc_=ans.filter(c=>c.started);
+  return {n:cs.length,mood:mean(moods),stress:mean(str),escAnswered:ans.length,escRate:ans.length?esc_.length/ans.length:null,trigDays:cs.filter(c=>c.anyTrigger).length};
+}
+function insightsView(){
+  const keys=rangeKeys(ui.range),cur=stats(keys),prev=stats(prevKeys(keys));
+  const has=cur.n>0;
+  const rangeBtns=`<div class="seg-range" role="group" aria-label="Date range">${[[7,'7 days'],[30,'30 days'],[90,'90 days'],['all','All']].map(([v,l])=>`<button data-act="range" data-v="${v}" aria-pressed="${String(ui.range)===String(v)}">${l}</button>`).join('')}</div>`;
+  if(!has)return demoBanner()+`<h1>Insights</h1>`+rangeBtns+`<div class="card empty"><p>No check ins in this period yet.</p><p class="small">Patterns appear after a week of check ins. Want to see how it works first?</p><button class="btn" data-act="demo-load">Load example data</button></div>`;
+  const cmp=(a,b,unit,lowerBetter)=>{if(a==null||b==null)return 'No earlier data to compare';const diff=a-b;if(Math.abs(diff)<0.05)return 'Same as the previous period';return `${r1(Math.abs(diff))}${unit} ${diff>0?'higher':'lower'} than the previous period`};
+  const tiles=`<div class="tiles">
+   <div class="tile"><span class="t">Average mood</span><span class="n num">${cur.mood==null?'?':r1(cur.mood)}</span><span class="d">${cmp(cur.mood,prev.mood,'')}</span></div>
+   <div class="tile"><span class="t">Average stress</span><span class="n num">${cur.stress==null?'?':r1(cur.stress)}</span><span class="d">${cmp(cur.stress,prev.stress,'')}</span></div>
+   <div class="tile"><span class="t">Days that got harder</span><span class="n num">${cur.escAnswered>=7?pct(cur.escRate):'?'}</span><span class="d">${cur.escAnswered>=7?`${Math.round(cur.escRate*cur.escAnswered)} of ${cur.escAnswered} answered days${cur.escAnswered<14?', early pattern':''}`:'Shows after 7 answered days'}</span></div>
+   <div class="tile"><span class="t">Trigger days</span><span class="n num">${cur.trigDays}</span><span class="d">of ${cur.n} check ins</span></div></div>`;
+  return demoBanner()+`<h1>Insights</h1>`+rangeBtns+tiles+trendCard(keys)+triggerCard(keys)+patternsCard(keys)+summaryCard(keys,cur)+`<p class="disclaimer">${esc(DISCLAIMER)}</p>`;
+}
+function rolling(keys,f){return keys.map((k,i)=>{const v=[];for(let j=Math.max(0,i-6);j<=i;j++){const c=state.checkins[keys[j]];if(c&&c[f]!=null)v.push(c[f])}return v.length>=2?mean(v):null})}
+let chartKeys=[];
+function trendCard(keys){
+  chartKeys=keys;
+  const W=640,L=36,R=104,T=16,PH=170,n=keys.length;
+  const x=i=>L+(n<=1?(W-L-R)/2:i*(W-L-R)/(n-1)),y=v=>T+PH-v/10*PH;
+  const H=T+PH+86,esY=T+PH+26,trY=T+PH+46;
+  const line=arr=>{let d='',pen=false;arr.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)+' ';pen=true});return d};
+  const mR=rolling(keys,'mood'),sR=rolling(keys,'stress');
+  const dotR=n>60?2.5:3.5;
+  let g='';
+  [0,5,10].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${v}</text>`});
+  let dots='',escM='',trM='';
+  keys.forEach((k,i)=>{const c=state.checkins[k];if(!c)return;
+    if(c.mood!=null)dots+=`<circle cx="${x(i)}" cy="${y(c.mood)}" r="${dotR}" fill="var(--mood)" fill-opacity=".45"/>`;
+    if(c.stress!=null)dots+=`<circle cx="${x(i)}" cy="${y(c.stress)}" r="${dotR}" fill="var(--stress)" fill-opacity=".45"/>`;
+    if(c.started)escM+=`<path d="M${x(i)} ${esY-5}l5 5l-5 5l-5 -5z" fill="var(--ink-2)"/>`;
+    if(c.anyTrigger)trM+=`<rect x="${x(i)-3.5}" y="${trY-3.5}" width="7" height="7" rx="1.5" fill="var(--ink-2)" fill-opacity=".75"/>`;
+  });
+  const lastIdx=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]!=null)return i;return -1};
+  let lab='';const mi=lastIdx(mR),si=lastIdx(sR);
+  if(mi>=0&&si>=0){let ym=y(mR[mi]),ys=y(sR[si]);if(Math.abs(ym-ys)<16){if(ym<ys){ym-=8;ys+=8}else{ym+=8;ys-=8}}
+    lab=`<text x="${W-R+10}" y="${ym+4}" font-size="13" font-weight="700" fill="var(--ink)">Mood ${r1(mR[mi])}</text><text x="${W-R+10}" y="${ys+4}" font-size="13" font-weight="700" fill="var(--ink)">Stress ${r1(sR[si])}</text>`}
+  const xl=[0,Math.floor((n-1)/2),n-1].filter((v,i,a)=>a.indexOf(v)===i).map((i,j,a)=>`<text x="${x(i)}" y="${H-8}" font-size="12" text-anchor="${a.length>1&&j===0?'start':a.length>1&&j===a.length-1?'end':'middle'}" fill="var(--ink-2)">${fmtShort(keys[i])}</text>`).join('');
+  const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mood and stress over the selected period, with days that got harder and trigger days marked">
+   ${g}${dots}
+   <path d="${line(mR)}" fill="none" stroke="var(--mood)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+   <path d="${line(sR)}" fill="none" stroke="var(--stress)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+   ${lab}
+   <line x1="${L}" x2="${W-R}" y1="${esY}" y2="${esY}" stroke="var(--grid)"/><line x1="${L}" x2="${W-R}" y1="${trY}" y2="${trY}" stroke="var(--grid)"/>
+   ${escM}${trM}
+   <text x="${W-R+10}" y="${esY+4}" font-size="12" fill="var(--ink-2)">Got harder</text><text x="${W-R+10}" y="${trY+4}" font-size="12" fill="var(--ink-2)">Trigger day</text>
+   ${xl}
+   <line id="xhair" x1="0" x2="0" y1="${T}" y2="${trY+6}" stroke="var(--ink-2)" stroke-dasharray="3 3" visibility="hidden"/>
+   <rect id="hit" x="${L-6}" y="0" width="${W-L-R+12}" height="${H}" fill="transparent"/></svg>`;
+  return `<div class="card"><h2>Mood and stress</h2>
+  <div class="legend"><span><i style="width:18px;height:3px;background:var(--mood)"></i>Mood</span><span><i style="width:18px;height:3px;background:var(--stress)"></i>Stress</span><span>Lines: 7 day average. Dots: daily score.</span></div>
+  <div class="chartwrap" id="trend">${svg}<div class="tip" id="tip"></div></div>
+  <p class="small muted">Both use the same 0 to 10 scale. Mood: higher is better. Stress: higher is worse. Tap or hover for a day's detail.</p></div>`;
+}
+function catCounts(keys){
+  const cnt={};CATS.forEach(x=>cnt[x.c]=0);
+  keys.forEach(k=>{const c=state.checkins[k];if(c&&c.anyTrigger)Object.keys(c.trig||{}).forEach(x=>cnt[x]++)});
+  return cnt;
+}
+function triggerCard(keys){
+  const cnt=catCounts(keys);const rows=CATS.map(x=>({c:x.c,n:cnt[x.c]})).sort((a,b)=>b.n-a.n);const max=Math.max(1,...rows.map(r=>r.n));
+  if(rows.every(r=>r.n===0))return `<div class="card"><h2>Triggers by type</h2><p class="muted">No triggers recorded in this period.</p></div>`;
+  return `<div class="card"><h2>Triggers by type</h2><p class="small muted">Days with each type of trigger. Tap a type to see what it was.</p><div class="bars">${rows.map(r=>`<button class="barrow" data-act="drill" data-c="${r.c}" aria-expanded="${ui.drill===r.c}"><span class="lab">${CATNAME[r.c]}</span><span class="track"><span class="fill" style="display:block;width:${r.n/max*100}%"></span></span><span class="cnt num">${r.n}</span></button>${ui.drill===r.c?drillHTML(keys,r.c):''}`).join('')}</div></div>`;
+}
+function drillHTML(keys,cat){
+  const tc={},ic={mild:0,moderate:0,strong:0};let days=0;
+  keys.forEach(k=>{const c=state.checkins[k];const t=c&&c.anyTrigger&&c.trig[cat];if(!t)return;days++;t.sel.forEach(id=>tc[id]=(tc[id]||0)+1);if(t.intensity)ic[t.intensity]++});
+  const list=Object.entries(tc).map(([id,n])=>({l:tagById(id)?tagById(id).label:'Removed tag',n})).sort((a,b)=>b.n-a.n);
+  const intTotal=ic.mild+ic.moderate+ic.strong;
+  return `<div class="drill">${list.length?`<table><tbody>${list.map(r=>`<tr><td>${esc(r.l)}</td><td>${r.n}</td></tr>`).join('')}</tbody></table>`:'<p>No details were recorded for these days.</p>'}
+  ${intTotal?`<p style="margin-top:8px">Response: ${['mild','moderate','strong'].filter(v=>ic[v]).map(v=>INT_LABEL[v]+' '+ic[v]).join(', ')}</p>`:''}</div>`;
+}
+function patternsCard(keys){
+  const cs=keys.map(k=>state.checkins[k]).filter(Boolean);
+  const caveat='<p class="caveat">This shows things that happen together, not what causes them.</p>';
+  const head=`<h2>Patterns</h2>`;
+  if(cs.length<14)return `<div class="card">${head}<p class="muted">Patterns appear once there are at least 14 check ins in the period. ${ui.range===7?'Try the 30 day view.':`You have ${cs.length} so far.`}</p></div>`;
+  let out='';
+  /* Sleep vs stress */
+  const ps=cs.filter(c=>c.sleep!=null&&c.stress!=null);
+  if(ps.length>=14){
+    const rho=spearman(ps.map(c=>c.sleep),ps.map(c=>c.stress));
+    const lo=ps.filter(c=>c.sleep<6),hi=ps.filter(c=>c.sleep>=7);
+    const sent=lo.length>=5&&hi.length>=5?`After nights under 6 hours, your stress averaged <b>${r1(mean(lo.map(c=>c.stress)))}</b>, compared with <b>${r1(mean(hi.map(c=>c.stress)))}</b> after 7 hours or more.`:'Not enough short and long nights yet to compare them.';
+    out+=`<div class="card pattern"><h3>Sleep and stress</h3><p>${sent}</p><p class="small muted">Spearman correlation ${rho.toFixed(2)}: ${strength(rho)} link. Based on ${ps.length} days.</p>${scatterSVG(ps)}${caveat}</div>`;
+  }else out+=`<div class="card pattern"><h3>Sleep and stress</h3><p class="muted">Needs sleep and stress on at least 14 days. You have ${ps.length}.</p></div>`;
+  /* Trigger type vs day got harder */
+  const ans=cs.filter(c=>c.started!=null);const lift=[];
+  CATS.forEach(x=>{const w=ans.filter(c=>c.anyTrigger&&c.trig[x.c]),wo=ans.filter(c=>!(c.anyTrigger&&c.trig[x.c]));if(w.length>=5&&wo.length>=5){const a=w.filter(c=>c.started).length/w.length,b=wo.filter(c=>c.started).length/wo.length;lift.push({c:x.c,a,b,d:a-b,nw:w.length,nwo:wo.length})}});
+  lift.sort((p,q)=>q.d-p.d);
+  out+=`<div class="card pattern"><h3>Triggers and days that got harder</h3>${lift.length?`<p>${lift[0].d>0.05?`${CATNAME[lift[0].c]} days ended worse than they started <b>${pct(lift[0].a)}</b> of the time, compared with <b>${pct(lift[0].b)}</b> on other days.`:'No trigger type stands out yet.'}</p>
+   <div class="drill"><table><thead><tr><td class="small muted">Trigger type</td><td class="small muted">Got harder: with / without</td></tr></thead><tbody>${lift.map(r=>`<tr><td>${CATNAME[r.c]} <span class="small muted">(${r.nw} days)</span></td><td>${pct(r.a)} / ${pct(r.b)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Needs at least 5 days with and 5 days without a trigger type.</p>'}${caveat}</div>`;
+  /* Trigger type vs stress */
+  const st=cs.filter(c=>c.stress!=null);const sd=[];
+  CATS.forEach(x=>{const w=st.filter(c=>c.anyTrigger&&c.trig[x.c]),wo=st.filter(c=>!(c.anyTrigger&&c.trig[x.c]));if(w.length>=5&&wo.length>=5)sd.push({c:x.c,d:mean(w.map(c=>c.stress))-mean(wo.map(c=>c.stress)),n:w.length})});
+  sd.sort((p,q)=>q.d-p.d);
+  if(sd.length)out+=`<div class="card pattern"><h3>Triggers and stress</h3><p>${sd[0].d>0.3?`On ${CATNAME[sd[0].c].toLowerCase()} days, your stress was <b>${r1(sd[0].d)} points higher</b> than on other days.`:'No trigger type shows a clear stress difference yet.'}</p><div class="drill"><table><tbody>${sd.map(r=>`<tr><td>${CATNAME[r.c]} <span class="small muted">(${r.n} days)</span></td><td>${r.d>=0?'+':'-'}${r1(Math.abs(r.d))}</td></tr>`).join('')}</tbody></table></div>${caveat}</div>`;
+  /* Carryover */
+  const pairs=[];keys.forEach(k=>{const a=state.checkins[k],b=state.checkins[addDays(k,1)];if(a&&b&&a.stress!=null&&b.mood!=null)pairs.push([a.stress,b.mood])});
+  if(pairs.length>=14){const rho=spearman(pairs.map(p=>p[0]),pairs.map(p=>p[1]));out+=`<div class="card pattern"><h3>Next day carryover</h3><p>${rho<=-0.2?'Higher stress days tend to be followed by lower mood the next day.':rho>=0.2?'Higher stress days tend to be followed by higher mood the next day.':'Stress on one day shows little link with mood the next day.'}</p><p class="small muted">Spearman correlation ${rho.toFixed(2)}, ${pairs.length} pairs of days.</p>${caveat}</div>`}
+  return `<div class="stack">${head}${out}</div>`;
+}
+function scatterSVG(ps){
+  const W=640,H=250,L=44,R=20,T=14,B=46;const pw=W-L-R,ph=H-T-B;
+  const x=v=>L+(Math.min(12,Math.max(2,v))-2)/10*pw,y=v=>T+ph-v/10*ph;
+  const xs=ps.map(c=>c.sleep),ys=ps.map(c=>c.stress);const mx=mean(xs),my=mean(ys);let num=0,den=0;xs.forEach((v,i)=>{num+=(v-mx)*(ys[i]-my);den+=(v-mx)**2});const b=den?num/den:0,a=my-b*mx;
+  const x0=Math.min(...xs),x1=Math.max(...xs);
+  let g='';[0,5,10].forEach(v=>g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${v}</text>`);
+  [2,4,6,8,10,12].forEach(v=>g+=`<text x="${x(v)}" y="${T+ph+18}" text-anchor="middle" font-size="12" fill="var(--ink-2)">${v}</text>`);
+  const dots=ps.map(c=>`<circle cx="${x(c.sleep).toFixed(1)}" cy="${y(c.stress).toFixed(1)}" r="5" fill="var(--stress)" fill-opacity=".7" stroke="var(--surface)" stroke-width="1.5"><title>${fmtShort(c.date)}: ${r1(c.sleep)} h sleep, stress ${c.stress}</title></circle>`).join('');
+  const tl=den?`<line x1="${x(x0)}" y1="${y(Math.max(0,Math.min(10,a+b*x0)))}" x2="${x(x1)}" y2="${y(Math.max(0,Math.min(10,a+b*x1)))}" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="6 4"/>`:'';
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scatter plot of sleep hours against stress" style="width:100%;height:auto">${g}${dots}${tl}<text x="${L+pw/2}" y="${H-6}" text-anchor="middle" font-size="12" fill="var(--ink-2)">Sleep the night before (hours)</text><text x="12" y="${T+ph/2}" transform="rotate(-90 12 ${T+ph/2})" text-anchor="middle" font-size="12" fill="var(--ink-2)">Stress (0 to 10)</text></svg><p class="small muted">Each dot is one day. The dashed line shows the overall trend.</p>`;
+}
+function summaryCard(keys,cur){
+  return `<div class="card"><h2>Summary for your clinician</h2><p class="small muted">A plain text summary of this period you can copy into an email or show at an appointment. Only shared if you choose to.</p><button class="btn small" data-act="summary">Create summary</button></div>`;
+}
+function clinicianText(){
+  const keys=rangeKeys(ui.range),s=stats(keys),cnt=catCounts(keys);
+  const top=Object.entries(cnt).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,n])=>`  ${CATNAME[c]}: ${n} days`).join('\n')||'  None recorded';
+  const sl=keys.map(k=>state.checkins[k]).filter(c=>c&&c.sleep!=null).map(c=>c.sleep);
+  const notes=keys.map(k=>state.checkins[k]).filter(c=>c&&c.note).map(c=>`  ${fmtShort(c.date)}: ${c.note}`).join('\n');
+  return `NAPALM self monitoring summary\nPeriod: ${fmtDate(keys[0])} to ${fmtDate(keys[keys.length-1])}\nCheck ins: ${s.n} of ${keys.length} days\n\nAverage mood (0 very low, 10 very good): ${s.mood==null?'n/a':r1(s.mood)}\nAverage stress (0 none, 10 extreme): ${s.stress==null?'n/a':r1(s.stress)}\nDays that got harder: ${s.escRate==null?'n/a':pct(s.escRate)+' of '+s.escAnswered+' answered days'}\nAverage sleep: ${sl.length?r1(mean(sl))+' h ('+sl.length+' nights)':'n/a'}\nTrigger days: ${s.trigDays}\n\nMost frequent trigger types:\n${top}\n${notes?'\nNotes:\n'+notes+'\n':''}\nSelf reported data from a non clinical tracking app.`;
+}
+
+/* Settings */
+function settingsView(){
+  const st=state.settings;const userTags=state.tags.filter(t=>!t.preset||t.uses>0||t.hidden);
+  const locked=!!cryptoKey;
+  return `<h1>Settings</h1>
+  ${!storageOK?'<div class="banner"><span class="small">This browser is blocking storage, so entries last only until you close the page.</span></div>':''}
+  <div class="card"><h2>Reminder</h2><label class="lbl" for="rem">Check in time</label><input class="field num" type="time" id="rem" data-input="reminder" value="${esc(st.reminder)}">
+  <p class="small muted">The iPhone app sends a discreet notification at this time: "Your evening check in is ready." A web page cannot send reminders, so set a phone alarm for now.</p></div>
+  <div class="card"><h2>Your support person</h2><p class="small muted">Shown in Get support, so you can reach them in one tap.</p>
+  <label class="lbl" for="cn">Name</label><input class="field" id="cn" data-input="contactName" value="${esc(st.contactName)}" maxlength="40">
+  <label class="lbl" for="cp">Phone number</label><input class="field num" id="cp" data-input="contactPhone" type="tel" value="${esc(st.contactPhone)}" maxlength="20"></div>
+  <div class="card"><h2>Privacy</h2><p class="small">Your entries are stored only in this browser on this device. NAPALM has no server and sends nothing anywhere.</p>
+  <h3>Passcode lock</h3><p class="small muted">${locked?'On. Your data is encrypted with AES 256 and needs your passcode to open.':'Off. Turn it on to encrypt your data with a passcode.'}</p>
+  ${ui.lockStep==='set'?`<form class="stack" data-form="setlock"><label class="lbl" for="p1">New passcode (4 to 8 digits)</label><input class="field num" id="p1" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required><label class="lbl" for="p2">Enter it again</label><input class="field num" id="p2" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required>${ui.lockErr?`<p role="alert" style="color:var(--peach)">${esc(ui.lockErr)}</p>`:''}<div class="row"><button class="btn primary small" type="submit">Turn on lock</button><button class="btn small" type="button" data-act="lock-cancel">Cancel</button></div></form>`
+   :locked?`<div class="row"><button class="btn small" data-act="lock-now">Lock now</button><button class="btn small" data-act="lock-remove">Turn off lock</button></div>`:`<button class="btn small" data-act="lock-set">Set a passcode</button>`}</div>
+  <div class="card"><h2>Export your data</h2><p class="small muted">Exported text is no longer protected by the app. Keep it somewhere safe.</p>
+  <div class="row"><button class="btn small" data-act="export" data-v="csv">CSV for spreadsheets</button><button class="btn small" data-act="export" data-v="json">Full backup (JSON)</button></div>
+  ${ui.exportText?`<textarea class="field num" id="exportbox" readonly style="min-height:160px;font-size:13px">${esc(ui.exportText)}</textarea><button class="btn small" data-act="copy">Copy to clipboard</button>`:''}
+  <label class="lbl" for="importfile">Restore from a full backup</label><input type="file" id="importfile" accept="application/json,.json" class="field"></div>
+  <div class="card"><h2>Your trigger tags</h2><p class="small muted">Hide tags you no longer want to see. Hidden tags stay in your history.</p>
+  ${userTags.length?`<div class="taglist">${userTags.map(t=>`<div class="contact"><div><div>${esc(t.label)}</div><div class="who">${CATNAME[t.c]}${t.preset?'':', your tag'}, used ${t.uses||0} times</div></div><button class="btn small" data-act="tag-hide" data-t="${t.id}">${t.hidden?'Show':'Hide'}</button></div>`).join('')}</div>`:'<p class="small muted">Tags you add or use will appear here.</p>'}</div>
+  <div class="card"><h2>Example data</h2><p class="small muted">Load 60 days of made up entries to explore Insights. You can clear them at any time without touching your own entries.</p><div class="row">${state.demo?'<button class="btn small" data-act="demo-clear">Clear example data</button>':'<button class="btn small" data-act="demo-load">Load example data</button>'}</div></div>
+  <div class="card"><h2>Delete everything</h2><p class="small muted">Removes every check in, tag, setting and passcode from this device. This cannot be undone.</p>
+  ${ui.confirmDelete?`<p role="alert"><b>Are you sure? All your data will be erased.</b></p><div class="row"><button class="btn warm small" data-act="del-confirm">Yes, delete everything</button><button class="btn small" data-act="del-cancel">Cancel</button></div>`:`<button class="btn warm small" data-act="del-ask">Delete everything</button>`}</div>
+  <div class="card"><h2>About</h2><p class="small">${esc(DISCLAIMER)}</p><p class="small muted">Web version. Add it to your home screen to use it like an app, including offline. A native iPhone app would add Apple Health and Oura data, Face ID and notifications.</p></div>`;
+}
+
+/* Support page */
+function supportCard(c){
+  return `<div class="card svc"><div class="svc-head"><span class="svc-ico">${ICON_PHONE}</span><div><h3>${esc(c.name)}</h3><p class="small muted">${esc(c.who)}</p></div></div>
+  <p class="small"><b>Hours:</b> ${esc(c.hours)}</p>
+  <div class="svc-actions"><a class="btn primary" href="tel:${digits(c.call)}">${ICON_PHONE}<span>Call ${esc(c.call)}</span></a>${c.text?`<a class="btn" href="sms:${digits(c.text)}">${ICON_TEXT}<span>Text ${esc(c.text)}</span></a>`:''}</div></div>`;
+}
+function supportView(){
+  return `<div class="hero-q"><h1>Support lines</h1><p>Free and confidential. Tap a button to call or text.</p></div>
+  <div class="banner"><span><b>In immediate danger?</b> Call 000.</span><a class="btn warm small" href="tel:000">${ICON_PHONE}<span>Call 000</span></a></div>
+  ${ownContact().length?supportCard({name:ownContact()[0].name,call:ownContact()[0].num,text:ownContact()[0].num,hours:'Your own contact',who:'Your support person, set in Settings.'}):''}
+  ${SUPPORT.map(supportCard).join('')}
+  <p class="small muted">If a button does not open your phone app, dial the number shown. Calls to 1800 numbers are free from most phones.</p>`;
+}
+
+/* Layers: support sheet, safety card, summary */
+function contactRows(list){return list.map(c=>`<div class="contact"><div><div><b>${esc(c.name)}</b></div><div class="who">${esc(c.who)}</div></div><a class="btn ${c.num==='000'?'warm':'primary'}" href="tel:${digits(c.num)}">${ICON_PHONE}<span>${esc(c.num)}</span></a></div>`).join('')}
+const sheetList=()=>[{name:'Emergency',num:'000',who:'Immediate danger'}].concat(SUPPORT.map(c=>({name:c.name,num:c.call,who:c.hours==='24/7'?'24/7':c.hours})),CONTACTS.filter(c=>c.name==='Defence All Hours Support Line'||c.name==='1800RESPECT'));
+function ownContact(){const s=state?state.settings:{};return s.contactPhone?[{name:s.contactName||'My support person',num:s.contactPhone,who:'Your own contact'}]:[]}
+function renderLayer(){
+  let h='';
+  if(ui.sheet==='support'){
+    h=`<div class="overlay" data-act="close-sheet"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sup-h" data-stop="1"><div class="row" style="justify-content:space-between"><h2 id="sup-h">Get support</h2><button class="btn small" data-act="close-sheet">Close</button></div>
+    <p>You don't have to manage this alone. These services are free and confidential.</p>${contactRows(ownContact().concat(sheetList()))}<button class="btn block" data-act="tab" data-v="support">Open the Support page</button>
+    <p class="small muted">If a button does not dial, use the number shown. Outside Australia, call your local emergency number.</p></div></div>`;
+  }else if(ui.after==='safety'&&ui.tab==='today'){
+    const pick=ownContact().concat(sheetList().filter(c=>c.name==='Lifeline'||c.name.startsWith('Open Arms'))).slice(0,3);
+    const s=state.settings;
+    h=`<div class="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="saf-h"><h2 id="saf-h">The last few days look really hard.</h2><p>You don't have to manage this alone. Talking to someone can help, even just for a few minutes.</p>${contactRows(pick)}
+    ${s.contactPhone?`<a class="btn block" href="sms:${esc(s.contactPhone.replace(/\s/g,''))}?&body=${encodeURIComponent("I'm having a rough few days. Can you give me a call when you can?")}">Message ${esc(s.contactName||'my support person')}</a>`:'<p class="small muted">Add your own support person in Settings to message them from here.</p>'}
+    <button class="btn block" data-act="support">See all support services</button><button class="btn link" data-act="snooze">Not now</button><p class="small muted">Your entry has been saved. NAPALM never contacts anyone for you.</p></div></div>`;
+  }else if(ui.sheet==='summary'){
+    h=`<div class="overlay" data-act="close-sheet"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sum-h" data-stop="1"><div class="row" style="justify-content:space-between"><h2 id="sum-h">Clinician summary</h2><button class="btn small" data-act="close-sheet">Close</button></div><textarea class="field num" id="exportbox" readonly style="min-height:300px;font-size:14px">${esc(clinicianText())}</textarea><button class="btn primary" data-act="copy">Copy to clipboard</button></div></div>`;
+  }
+  layer.innerHTML=h;
+}
+
+/* ---------- Chart hover ---------- */
+function afterRender(){
+  const wrap=document.getElementById('trend');if(!wrap)return;
+  const svg=wrap.querySelector('svg'),tip=document.getElementById('tip'),xh=svg.querySelector('#xhair');
+  const W=640,L=36,R=104,n=chartKeys.length;
+  const move=e=>{const b=svg.getBoundingClientRect();const sx=(e.clientX-b.left)/b.width*W;let i=n<=1?0:Math.round((sx-L)/((W-L-R)/(n-1)));i=Math.max(0,Math.min(n-1,i));
+    const k=chartKeys[i],c=state.checkins[k];const px=L+(n<=1?(W-L-R)/2:i*(W-L-R)/(n-1));xh.setAttribute('x1',px);xh.setAttribute('x2',px);xh.setAttribute('visibility','visible');
+    tip.innerHTML=`<b>${fmtDate(k)}</b><br>`+(c?`Mood <b>${c.mood==null?'skipped':c.mood}</b> · Stress <b>${c.stress==null?'skipped':c.stress}</b>${c.started?'<br>Day got harder':''}${c.anyTrigger?'<br>Triggers: '+(Object.keys(c.trig).map(x=>CATNAME[x]).join(', ')||'type not recorded'):''}${c.sleep!=null?'<br>Sleep '+r1(c.sleep)+' h':''}`:'No check in');
+    tip.style.display='block';const wb=wrap.getBoundingClientRect();let left=(px/W)*b.width+(b.left-wb.left)+12;if(left+tip.offsetWidth>wb.width)left=left-tip.offsetWidth-24;tip.style.left=Math.max(0,left)+'px';tip.style.top='8px'};
+  const hit=svg.querySelector('#hit');hit.addEventListener('pointermove',move);hit.addEventListener('pointerdown',move);
+  hit.addEventListener('pointerleave',()=>{tip.style.display='none';xh.setAttribute('visibility','hidden')});
+}
+
+/* ---------- Toast ---------- */
+let toastT=null;
+function toast(msg){const el=document.getElementById('live');el.textContent=msg;el.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>{el.style.display='none'},3200)}
+
+/* ---------- Example data ---------- */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function loadDemo(){
+  const rnd=mulberry(42),k=todayKey();const pickTag=(c,f)=>{const l=state.tags.filter(t=>t.c===c&&t.f===f&&t.preset);return l[Math.floor(rnd()*l.length)].id};
+  const gauss=()=>{let u=0;for(let i=0;i<6;i++)u+=rnd();return u-3};
+  for(let i=60;i>=1;i--){
+    const d=addDays(k,-i);if(state.checkins[d])continue;if(rnd()<0.07)continue;
+    const dow=parseKey(d).getDay(),weekend=dow===0||dow===6;
+    const sleep=Math.round(Math.max(3.5,Math.min(9.5,6.7+gauss()*1.1-(dow===1?0.6:0)))*2)/2;
+    const trig={};
+    const crowd=rnd()<(weekend?0.45:0.14),social=rnd()<0.25,loc=rnd()<0.09,seen=rnd()<0.12,smell=rnd()<0.06,other=rnd()<0.07,fat=sleep<5.5;
+    const intens=()=>['mild','moderate','strong'][Math.floor(rnd()*3)];
+    if(crowd)trig.CROWD={on:true,sel:[pickTag('CROWD','where')].concat(rnd()<0.6?[pickTag('CROWD','duration')]:[]),intensity:intens(),place:''};
+    if(social)trig.SOCIAL={on:true,sel:[pickTag('SOCIAL','what')].concat(rnd()<0.5?[pickTag('SOCIAL','platform')]:[]),intensity:intens(),place:''};
+    if(loc)trig.LOCATION={on:true,sel:[pickTag('LOCATION','where'),pickTag('LOCATION','event')],intensity:intens(),place:''};
+    if(seen)trig.SEEN={on:true,sel:[pickTag('SEEN','what')],intensity:intens(),place:''};
+    if(smell)trig.SMELL={on:true,sel:[pickTag('SMELL','what')],intensity:intens(),place:''};
+    if(other)trig.OTHER={on:true,sel:[pickTag('OTHER','what')],intensity:intens(),place:''};
+    if(fat)trig.FATIGUE={on:true,sel:rnd()<0.5?[pickTag('FATIGUE','context')]:[],intensity:null,place:''};
+    let stress=3.4+(7-sleep)*0.85+(crowd?1.6:0)+(social?0.8:0)+(smell?1.4:0)+(loc?1.2:0)+gauss()*0.9;
+    stress=Math.round(Math.max(0,Math.min(i<=3?7:9,stress)));
+    let mood=Math.round(Math.max(1,Math.min(10,8.6-0.62*stress+gauss()*0.8)));
+    const started=rnd()<0.12+(crowd?0.45:0)+(sleep<6?0.12:0)+(smell?0.2:0);
+    const any=Object.keys(trig).length>0;
+    const rec={date:d,created:Date.now(),updated:Date.now(),tz:'Australia/Brisbane',mood:rnd()<0.04?null:mood,stress,started:rnd()<0.05?null:started,anyTrigger:any,trig:any?trig:{},categoryUnknown:false,sleep:rnd()<0.06?null:sleep,sleepSource:'manual',note:'',secs:40+Math.floor(rnd()*70),skipped:[],safetyShown:false,demo:true};
+    Object.values(rec.trig).forEach(v=>v.sel.forEach(id=>{const t=tagById(id);t.uses=(t.uses||0)+1;t.last=Date.now()}));
+    state.checkins[d]=rec;
+  }
+  state.demo=true;save();
+}
+function clearDemo(){
+  Object.values(state.checkins).forEach(c=>{if(c.demo){Object.values(c.trig||{}).forEach(v=>v.sel.forEach(id=>{const t=tagById(id);if(t)t.uses=Math.max(0,(t.uses||0)-1)}));delete state.checkins[c.date]}});
+  state.demo=false;save();
+}
+
+/* ---------- Export / import ---------- */
+function toCSV(){
+  const q=v=>{const s=v==null?'':String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const rows=[['date','mood','stress','started_higher_finished_lower','any_trigger','trigger_categories','trigger_tags','intensities','sleep_hours','note','example_data']];
+  Object.keys(state.checkins).sort().forEach(k=>{const c=state.checkins[k];const cats=Object.keys(c.trig||{});
+    rows.push([k,c.mood,c.stress,c.started==null?'':c.started?'yes':'no',c.anyTrigger==null?'':c.anyTrigger?'yes':'no',cats.join('; '),cats.map(x=>c.trig[x].sel.map(id=>tagById(id)?tagById(id).label:'').join(' | ')).join('; '),cats.map(x=>c.trig[x].intensity||'').join('; '),c.sleep,c.note,c.demo?'yes':'no'])});
+  return rows.map(r=>r.map(q).join(',')).join('\n');
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const stopper=e.target.closest('[data-stop]');
+  const a=el.dataset.act,v=el.dataset.v;
+  if(a==='close-sheet'&&stopper&&el.classList.contains('overlay'))return;
+  const d=state&&state.draft?state.draft.d:null;
+  switch(a){
+    case 'tab':ui.sheet=null;ui.tab=v;ui.after=null;ui.drill=null;ui.exportText='';ui.confirmDelete=false;render();window.scrollTo(0,0);break;
+    case 'support':ui.sheet='support';ui.after=ui.after==='safety'?'saved':ui.after;render();break;
+    case 'close-sheet':ui.sheet=null;render();break;
+    case 'accept':state.accepted=true;if(v==='demo'){loadDemo();ui.tab='insights'}save();if(v==='fresh')startCheckin();else render();break;
+    case 'start':ui.after=null;startCheckin();break;
+    case 'dismiss-after':ui.after=null;render();break;
+    case 'close-flow':ui.tab='today';save();render();toast('Your answers are kept. Resume any time today.');break;
+    case 'next':go(1);break;
+    case 'back':go(-1);break;
+    case 'skip':{const st=curStep();const map={sleep:'sleep',mood:'mood',stress:'stress',started:'started',trigger:'anyTrigger'};const f=map[st];if(f){d[f]=null;markSkip(f)}go(1);break}
+    case 'finish':state.draft.step=steps(d).length-1;save();render();window.scrollTo(0,0);break;
+    case 'goto':state.draft.step=Number(v);save();render();window.scrollTo(0,0);break;
+    case 'yn':{const f=el.dataset.f;d[f]=v==='true';unSkip(f);save();render();setTimeout(()=>go(1),180);break}
+    case 'num':{const f=el.dataset.f;d[f]=Number(v);unSkip(f);save();render();break}
+    case 'sleep':{const cur=d.sleep==null?7-Number(v):d.sleep;d.sleep=Math.max(0,Math.min(14,cur+Number(v)));unSkip('sleep');save();render();break}
+    case 'cat':{const t=ensureTrig(el.dataset.c);t.on=!t.on;ui.justOpened=t.on?el.dataset.c:null;save();render();ui.justOpened=null;break}
+    case 'tag':{const c=el.dataset.c,f=el.dataset.f,id=el.dataset.t,t=ensureTrig(c);if(t.sel.includes(id))t.sel=t.sel.filter(x=>x!==id);else{if(el.dataset.multi==='0')t.sel=t.sel.filter(x=>{const g=tagById(x);return !(g&&g.f===f)});t.sel.push(id)}save();render();break}
+    case 'int':{const t=ensureTrig(el.dataset.c);t.intensity=t.intensity===v?null:v;save();render();break}
+    case 'add-tag':{const c=el.dataset.c,f=el.dataset.f;const inp=document.getElementById('own-'+c+'-'+f);const label=(inp.value||'').trim().slice(0,40);if(!label){toast('Type a few words first.');inp.focus();break}
+      const n=norm(label);const match=state.tags.find(g=>g.c===c&&g.f===f&&(g.n===n||(n.length>4&&lev(g.n,n)<=2)));const t=ensureTrig(c);
+      if(match){match.hidden=false;if(!t.sel.includes(match.id))t.sel.push(match.id);toast('Matched your existing tag "'+match.label+'".')}
+      else{const g={id:uid(),c,f,label,n,preset:false,hidden:false,uses:0,last:0};state.tags.push(g);t.sel.push(g.id);toast('Added "'+label+'". It will be a quick pick next time.')}
+      save();render();break}
+    case 'save':saveCheckin();break;
+    case 'snooze':state.safety.snoozeUntil=Date.now()+48*3600*1000;state.safety.events.push({at:Date.now(),action:'snoozed'});ui.after='saved';save();render();break;
+    case 'range':ui.range=v==='all'?'all':Number(v);ui.drill=null;render();break;
+    case 'drill':ui.drill=ui.drill===el.dataset.c?null:el.dataset.c;render();break;
+    case 'summary':ui.sheet='summary';render();break;
+    case 'demo-load':loadDemo();ui.tab='insights';render();toast('Example data loaded.');break;
+    case 'demo-clear':clearDemo();render();toast('Example data cleared.');break;
+    case 'export':ui.exportText=v==='csv'?toCSV():JSON.stringify(state,null,1);render();break;
+    case 'copy':{const box=document.getElementById('exportbox');try{await navigator.clipboard.writeText(box.value);toast('Copied.')}catch(err){box.focus();box.select();toast('Select all and copy the text.')}break}
+    case 'tag-hide':{const t=tagById(el.dataset.t);t.hidden=!t.hidden;save();render();break}
+    case 'del-ask':ui.confirmDelete=true;render();break;
+    case 'del-cancel':ui.confirmDelete=false;render();break;
+    case 'del-confirm':lsDel(KEY);lsDel(EKEY);cryptoKey=null;saltB64=null;state=freshState();ui={...ui,tab:'today',confirmDelete:false,after:null,exportText:''};render();toast('Everything has been deleted.');break;
+    case 'lock-set':ui.lockStep='set';ui.lockErr='';render();break;
+    case 'lock-cancel':ui.lockStep=null;ui.lockErr='';render();break;
+    case 'lock-remove':cryptoKey=null;saltB64=null;await persist();render();toast('Passcode lock is off.');break;
+    case 'lock-now':clearTimeout(saveTimer);await persist();ui.locked=true;ui.lockErr='';state=null;render();break;
+    case 'lock-erase':lsDel(KEY);lsDel(EKEY);cryptoKey=null;state=freshState();ui.locked=false;render();break;
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.range){const f=el.dataset.range,d=state.draft.d;d[f]=Number(el.value);unSkip(f);el.classList.remove('untouched');el.setAttribute('aria-valuetext',el.value+' out of 10');
+    const big=document.getElementById('big-'+f);big.textContent=el.value;big.classList.remove('unset');
+    document.querySelectorAll(`[data-act="num"][data-f="${f}"]`).forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.v)===d[f])));syncEmoji(f);save();return}
+  const k=el.dataset.input;if(!k)return;
+  if(k==='note'){state.draft.d.note=el.value.slice(0,280);save()}
+  else if(k==='place'){ensureTrig(el.dataset.c).place=el.value;save()}
+  else if(k==='reminder'||k==='contactName'||k==='contactPhone'){state.settings[k]=el.value;save()}
+});
+document.addEventListener('change',async e=>{
+  if(e.target.id!=='importfile')return;const f=e.target.files[0];if(!f)return;
+  try{const obj=JSON.parse(await f.text());if(!obj||obj.v!==1||!obj.checkins)throw new Error('format');state=obj;state.draft=null;save();render();toast('Backup restored.')}catch(err){toast('That file is not a NAPALM backup.')}
+});
+document.addEventListener('submit',async e=>{
+  e.preventDefault();const form=e.target.dataset.form;
+  if(form==='unlock'){const pass=document.getElementById('unlock-pass').value;try{const env=JSON.parse(lsGet(EKEY));const key=await deriveKey(pass,unb64(env.salt));const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(env.iv)},key,unb64(env.ct));state=JSON.parse(new TextDecoder().decode(pt));cryptoKey=key;saltB64=env.salt;ui.locked=false;ui.lockErr='';render()}catch(err){ui.lockErr='That passcode did not work. Try again.';render()}}
+  if(form==='setlock'){const p1=document.getElementById('p1').value,p2=document.getElementById('p2').value;if(!/^\d{4,8}$/.test(p1)){ui.lockErr='Use 4 to 8 digits.';render();return}if(p1!==p2){ui.lockErr='The two passcodes do not match.';render();return}
+    const salt=crypto.getRandomValues(new Uint8Array(16));cryptoKey=await deriveKey(p1,salt);saltB64=b64(salt);ui.lockStep=null;ui.lockErr='';await persist();render();toast('Passcode lock is on. Your data is encrypted.')}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.sheet){ui.sheet=null;render()}});
+
+/* ---------- Boot ---------- */
+(function boot(){
+  if(lsGet(EKEY)){ui.locked=true;render();return}
+  try{const raw=lsGet(KEY);state=raw?JSON.parse(raw):freshState()}catch(e){state=freshState()}
+  if(!state.tags||!state.checkins)state=freshState();
+  if(state.draft&&state.draft.date!==todayKey())state.draft=null;
+  render();
+})();
+if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>
