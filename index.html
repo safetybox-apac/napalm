@@ -50,6 +50,11 @@ button{cursor:pointer}
 header.top{padding-top:calc(12px + env(safe-area-inset-top)) !important;position:sticky;top:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .brand{font-weight:700;letter-spacing:.16em;font-size:17px;color:var(--peach)}
 .brand small{display:block;font-weight:400;letter-spacing:0;font-size:13px;color:var(--ink-2)}
+.head-right{display:flex;align-items:center;gap:10px}
+.logo-sm{width:44px;height:44px;border-radius:10px;display:block}
+.logo-hero{display:flex;justify-content:center;padding:8px 0 4px}
+.logo-hero img{width:160px;height:160px;border-radius:28px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+@media (max-width:400px){.brand small{display:none}}
 .support-btn{min-height:48px;padding:0 16px;border-radius:999px;border:2px solid var(--accent);background:var(--cream);color:var(--cream-ink);font-weight:700}
 main{flex:1;padding:20px 16px 120px;display:flex;flex-direction:column;gap:20px}
 nav.tabs{padding-bottom:env(safe-area-inset-bottom);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line)}
@@ -167,6 +172,23 @@ label.lbl{font-size:15px;font-weight:700;color:var(--ink-2)}
 .svc-ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--cream);color:var(--accent)}
 .svc-actions{display:grid;gap:10px}
 .svc-actions .btn,.contact .btn,.banner .btn{gap:10px}
+.bucket-title{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center}
+.bucket-ico{display:flex}
+.bucket-meter{display:flex;align-items:center;gap:16px}
+.bucket-count{font-size:30px;font-weight:700}
+.bucket-list{display:flex;flex-direction:column;gap:10px}
+.bitem{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;text-align:left;width:100%;min-height:64px;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--surface)}
+.bitem .bbox{width:28px;height:28px;border-radius:7px;border:2px solid var(--ink-2);margin-top:1px;display:flex;align-items:center;justify-content:center}
+.bitem[aria-pressed="true"]{border-color:var(--accent);background:var(--surface-2)}
+.bitem[aria-pressed="true"] .bbox{background:var(--accent);border-color:var(--accent)}
+.bitem[aria-pressed="true"] .bbox::after{content:"";width:8px;height:14px;border:solid var(--accent-ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
+.btitle{display:block;font-weight:700}
+.bdesc{display:block;font-size:15px;color:var(--ink-2);margin-top:2px}
+.actions-card{border-left:6px solid var(--accent)}
+.action{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
+.action h3{font-size:16px;color:var(--peach)}
+.action p{font-size:16px}
+.allactions summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
 .disclaimer{font-size:15px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:12px}
 .taglist{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
 .taglist .contact{grid-template-columns:1fr auto}
@@ -231,7 +253,35 @@ const SUPPORT=[
 ];
 const ICON_PHONE='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02z"/></svg>';
 const ICON_TEXT='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8.5L4 22V5a2 2 0 0 1 2-2z" transform="translate(-2 0)"/></svg>';
+const ICON_MAIL='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.4 2L12 12.2 19.6 7H4.4zM20 8.6l-7.4 5.1a1 1 0 0 1-1.2 0L4 8.6V17h16V8.6z"/></svg>';
 const digits=n=>n.replace(/\s/g,'');
+const BUCKET=[
+  {id:'workload',short:'Workload',title:'Tight deadlines and heavy workloads',desc:'Having too many tasks to finish at once creates constant background pressure.',action:'Pick the single most urgent task and work on it for 25 minutes. Pause or delegate everything else on your list until that one task is done.'},
+  {id:'money',short:'Cost of living',title:'Cost of living and unexpected bills',desc:'Worrying about everyday expenses, rent, or sudden repairs adds heavy financial strain.',action:'Write down the exact dollar amount owed and call the provider to request a payment plan or extension. Getting clear numbers stops your brain from spinning on worst-case scenarios.'},
+  {id:'job',short:'Job insecurity or conflict',title:'Job insecurity or workplace conflict',desc:'Feeling uncertain about your role or dealing with tension among coworkers drains emotional energy.',action:'Focus strictly on the tasks within your direct control today. Step outside for a 10-minute walk away from your desk to reset your nervous system.'},
+  {id:'sleep',short:'Poor sleep',title:'Poor sleep or ongoing fatigue',desc:'Missing out on restful sleep shrinks your overall capacity to handle other problems.',action:'Dim the lights and put your phone in another room 30 minutes before bed tonight. Avoid caffeine and heavy meals for the rest of the evening.'},
+  {id:'health',short:'Health concerns',title:'Personal or family health concerns',desc:'Managing chronic pain, awaiting test results, or caring for a sick loved one takes a heavy toll.',action:'Write down your top three medical questions in a notebook so you do not have to hold them in your head. Book an appointment with your GP or health provider to get clear answers.'},
+  {id:'screens',short:'No downtime',title:'Lack of downtime or constant screen time',desc:'Staying plugged into emails, notifications, and news leaves your brain without a chance to rest.',action:'Turn on "Do Not Disturb" mode for one full hour right now. Spend that screen-free time stretching, sitting quietly, or listening to music.'},
+  {id:'home',short:'Conflict at home',title:'Misunderstandings or conflict at home',desc:'Arguments with a partner, family member, or housemate add immediate emotional weight.',action:'Call a 20-minute time-out to cool down before trying to solve the disagreement. Take slow, deep breaths until your heart rate settles.'},
+  {id:'care',short:'Caregiving',title:'Caregiving and parenting demands',desc:'Balancing the needs of children or ageing parents often leaves little time for yourself.',action:'Lower your standards for household chores today and let non-urgent mess wait. Ask a partner, friend, or family member to cover a 30-minute break for you.'},
+  {id:'change',short:'Life transitions',title:'Major life transitions',desc:'Moving house, starting a new job, or ending a relationship disrupts your normal routine.',action:'Stick to one familiar daily anchor, such as eating breakfast at the same time or taking a short morning walk. Focus only on the next immediate step rather than the whole transition.'},
+  {id:'alone',short:'Isolation',title:'Social isolation or loneliness',desc:'Feeling disconnected from supportive friends makes existing stressors feel much heavier.',action:'Send a brief text or voice note to one trusted friend just to check in. Even a quick, low-pressure connection helps lighten the emotional load.'}
+];
+const BUCKET_BY=Object.fromEntries(BUCKET.map(b=>[b.id,b]));
+const bucketLevel=n=>n===0?'Empty':n<=3?'Some room left':n<=6?'Getting full':'Close to overflowing';
+let bucketSeq=0;
+function bucketSVG(n,size,label){
+  const id='bk'+(bucketSeq++),lvl=Math.min(1,(n||0)/10),top=92-58*lvl;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" ${label?`role="img" aria-label="${label}"`:'aria-hidden="true" focusable="false"'}><defs><clipPath id="${id}"><path d="M17 34H83L74 92H26Z"/></clipPath></defs>
+  <path d="M22 36Q50 0 78 36" fill="none" stroke="var(--peach)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M17 34H83L74 92H26Z" fill="var(--surface-2)"/>
+  ${lvl>0?`<rect x="0" y="${top}" width="100" height="${92-top}" fill="var(--mood)" clip-path="url(#${id})"/><path d="M14 ${top}Q30 ${top-4} 50 ${top}T86 ${top}" fill="none" stroke="#9fd0f0" stroke-width="2" clip-path="url(#${id})"/>`:''}
+  <path d="M17 34H83L74 92H26Z" fill="none" stroke="var(--cream)" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M13 34H87" stroke="var(--cream)" stroke-width="6" stroke-linecap="round"/></svg>`;
+}
+const DIR_LABEL={up:'Increased',same:'Stayed about the same',down:'Decreased'};
+const dirText=c=>c.stressDir?DIR_LABEL[c.stressDir]:c.started==null?'Not sure':c.started?'Increased':'Did not increase';
+const bucketText=b=>b==null?'Skipped':b.length===0?'Empty':`${b.length} of 10: ${b.map(id=>BUCKET_BY[id]?BUCKET_BY[id].short:'').join(', ')}`;
 const DISCLAIMER='NAPALM helps you track how you feel and what affects you. It is not a medical device and does not diagnose, treat or replace care from a qualified health professional. If you are in danger or need urgent help, call 000.';
 const INT_LABEL={mild:'Mild',moderate:'Moderate',strong:'Strong'};
 /* Emoji at each end of the sleep, mood and stress questions. The face for the current answer lights up. */
@@ -289,21 +339,21 @@ async function persist(){
 function freshState(){
   const tags=[];
   Object.entries(PRESETS).forEach(([k,list])=>{const [c,f]=k.split('.');list.forEach((label,i)=>tags.push({id:'p_'+c+'_'+f+'_'+i,c,f,label,n:norm(label),preset:true,hidden:false,uses:0,last:0}))});
-  return {v:1,accepted:false,demo:false,settings:{reminder:'20:30',contactName:'',contactPhone:''},checkins:{},tags,safety:{snoozeUntil:0,events:[]},draft:null};
+  return {v:1,accepted:false,demo:false,settings:{reminder:'20:30',clinician:{name:'',email:'',phone:''},ice:{name:'',email:'',phone:''}},checkins:{},tags,safety:{snoozeUntil:0,events:[]},draft:null};
 }
 let state=null;
 let ui={tab:'today',range:30,drill:null,sheet:null,after:null,exportText:'',confirmDelete:false,locked:false,lockErr:'',lockStep:null};
 const tagById=id=>state.tags.find(t=>t.id===id);
 
 /* ---------- Check in flow ---------- */
-function blankDraft(date){return {date,step:0,start:Date.now(),d:{mood:null,stress:null,started:null,anyTrigger:null,trig:{},sleep:null,note:'',skipped:[]}}}
-function steps(d){const s=['sleep','mood','stress','started','trigger'];if(d.anyTrigger===true)s.push('cats');s.push('review');return s}
+function blankDraft(date){return {date,step:0,start:Date.now(),d:{mood:null,stress:null,bucket:null,stressDir:null,started:null,anyTrigger:null,trig:{},sleep:null,note:'',skipped:[]}}}
+function steps(d){const s=['sleep','mood','stress','bucket','started','trigger'];if(d.anyTrigger===true)s.push('cats');s.push('review');return s}
 function startCheckin(){
   const k=todayKey();
   if(!state.draft||state.draft.date!==k){
     const ex=state.checkins[k];
     state.draft=blankDraft(k);
-    if(ex){state.draft.d=JSON.parse(JSON.stringify({mood:ex.mood,stress:ex.stress,started:ex.started,anyTrigger:ex.anyTrigger,trig:ex.trig||{},sleep:ex.sleep,note:ex.note||'',skipped:ex.skipped||[]}));state.draft.step=steps(state.draft.d).length-1;state.draft.editing=true}
+    if(ex){state.draft.d=JSON.parse(JSON.stringify({mood:ex.mood,stress:ex.stress,bucket:ex.bucket==null?null:ex.bucket,stressDir:ex.stressDir||null,started:ex.started,anyTrigger:ex.anyTrigger,trig:ex.trig||{},sleep:ex.sleep,note:ex.note||'',skipped:ex.skipped||[]}));state.draft.step=steps(state.draft.d).length-1;state.draft.editing=true}
   }
   ui.tab='checkin';save();render();
 }
@@ -317,10 +367,10 @@ function saveCheckin(){
   const dr=state.draft,d=dr.d;
   const trig={};
   if(d.anyTrigger===true)Object.entries(d.trig).forEach(([c,v])=>{if(v.on)trig[c]={on:true,sel:v.sel.slice(),intensity:v.intensity,place:(v.place||'').slice(0,80)}});
-  ['mood','stress','started','anyTrigger','sleep'].forEach(f=>{if(d[f]==null&&!d.skipped.includes(f))d.skipped.push(f)});
+  ['mood','stress','bucket','started','anyTrigger','sleep'].forEach(f=>{if(d[f]==null&&!d.skipped.includes(f))d.skipped.push(f)});
   const prev=state.checkins[dr.date];
   const rec={date:dr.date,created:prev?prev.created:Date.now(),updated:Date.now(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone,
-    mood:d.mood,stress:d.stress,started:d.started,anyTrigger:d.anyTrigger,trig,
+    mood:d.mood,stress:d.stress,bucket:d.bucket,stressDir:d.stressDir||null,started:d.started,anyTrigger:d.anyTrigger,trig,
     categoryUnknown:d.anyTrigger===true&&Object.keys(trig).length===0,
     sleep:d.sleep,sleepSource:d.sleep==null?null:'manual',note:(d.note||'').slice(0,280),
     secs:Math.round((Date.now()-dr.start)/1000),skipped:d.skipped.filter(f=>d[f]==null),safetyShown:false};
@@ -338,13 +388,14 @@ function safetyHit(date){
 
 /* ---------- Rendering ---------- */
 const app=document.getElementById('app'),layer=document.getElementById('layer');
-function headerHTML(){return `<header class="top"><div class="brand">NAPALM<small>Daily stress and trigger check in</small></div><button class="support-btn" data-act="support" aria-haspopup="dialog">Get support</button></header>`}
+function headerHTML(front){return `<header class="top"><div class="brand">NAPALM<small>Daily stress and trigger check in</small></div><div class="head-right"><button class="support-btn" data-act="support" aria-haspopup="dialog">Get support</button>${front?'':'<img class="logo-sm" src="icons/logo-96.png" width="44" height="44" alt="NAPALM logo">'}</div></header>`}
+const bigLogo='<div class="logo-hero"><img src="icons/logo-320.png" width="160" height="160" alt="NAPALM logo"></div>';
 function tabsHTML(){const t=[['today','Today'],['insights','Insights'],['settings','Settings'],['support','Support']];return `<nav class="tabs" aria-label="Main"><div class="in">${t.map(([k,l])=>`<button data-act="tab" data-v="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('')}</div></nav>`}
 function demoBanner(){return state.demo?`<div class="banner"><span class="small">You are looking at 60 days of example data.</span><button class="btn small" data-act="demo-clear">Clear example data</button></div>`:''}
 
 function render(){
   if(ui.locked){app.innerHTML=lockScreen();renderLayer();return}
-  if(!state.accepted){app.innerHTML=headerHTML()+`<main>${onboarding()}</main>`;renderLayer();return}
+  if(!state.accepted){app.innerHTML=headerHTML(true)+`<main>${bigLogo}${onboarding()}</main>`;renderLayer();return}
   if(ui.tab==='checkin'&&state.draft){app.innerHTML=headerHTML()+`<main>${checkinScreen()}</main>`+actionBar();renderLayer();afterRender();return}
   if(ui.tab==='checkin')ui.tab='today';
   let body='';
@@ -363,7 +414,7 @@ function onboarding(){
 }
 
 function lockScreen(){
-  return headerHTML()+`<main><div class="hero-q"><h1>Unlock NAPALM</h1><p>Your data is encrypted. Enter your passcode.</p></div>
+  return headerHTML(true)+`<main>${bigLogo}<div class="hero-q"><h1>Unlock NAPALM</h1><p>Your data is encrypted. Enter your passcode.</p></div>
   <form class="stack" data-form="unlock"><label class="lbl" for="unlock-pass">Passcode</label><input class="field num" id="unlock-pass" type="password" inputmode="numeric" autocomplete="current-password" required>
   ${ui.lockErr?`<p role="alert" style="color:var(--peach)">${esc(ui.lockErr)}</p>`:''}<button class="btn primary block" type="submit">Unlock</button></form>
   <p class="small muted">Forgot your passcode? Your data cannot be recovered without it. You can erase it and start again.</p>
@@ -381,12 +432,12 @@ function todayView(){
 }
 function summaryLines(c){
   const trig=c.anyTrigger?Object.keys(c.trig).map(x=>CATNAME[x]).join(', ')||'Yes, type not recorded':c.anyTrigger===false?'None':'Skipped';
-  const rows=[['Mood',c.mood==null?'Skipped':c.mood+' / 10'],['Stress',c.stress==null?'Skipped':c.stress+' / 10'],['Day got harder',c.started==null?'Not sure':c.started?'Yes':'No'],['Triggers',trig],['Sleep',c.sleep==null?'Not entered':r1(c.sleep)+' h']];
+  const rows=[['Mood',c.mood==null?'Skipped':c.mood+' / 10'],['Stress',c.stress==null?'Skipped':c.stress+' / 10'],['Stress bucket',bucketText(c.bucket)],['Stress during the day',dirText(c)],['Triggers',trig],['Sleep',c.sleep==null?'Not entered':r1(c.sleep)+' h']];
   return `<dl class="sumlist">${rows.map(([a,b])=>`<div><dt>${a}</dt><dd class="num">${esc(b)}</dd></div>`).join('')}</dl>`;
 }
 function weekStrip(){
   const k=todayKey();const days=[];for(let i=6;i>=0;i--)days.push(addDays(k,-i));
-  return `<div class="card"><h3>Last 7 days</h3><div class="week">${days.map(d=>{const c=state.checkins[d];const dd=parseKey(d);return `<div><span class="muted">${DOW[dd.getDay()]}</span>${c?`<span>Mood <b class="num">${c.mood==null?'?':c.mood}</b></span><span>Stress <b class="num">${c.stress==null?'?':c.stress}</b></span>${c.started?'<span class="esc">Got harder</span>':''}`:'<span class="muted" style="margin-top:8px">No entry</span>'}</div>`}).join('')}</div></div>`;
+  return `<div class="card"><h3>Last 7 days</h3><div class="week">${days.map(d=>{const c=state.checkins[d];const dd=parseKey(d);return `<div><span class="muted">${DOW[dd.getDay()]}</span>${c?`<span>Mood <b class="num">${c.mood==null?'?':c.mood}</b></span><span>Stress <b class="num">${c.stress==null?'?':c.stress}</b></span>${c.started?'<span class="esc">Stress rose</span>':''}`:'<span class="muted" style="margin-top:8px">No entry</span>'}</div>`}).join('')}</div></div>`;
 }
 
 /* Check in screens */
@@ -397,12 +448,26 @@ function checkinScreen(){
   if(step==='sleep')body=`<div class="hero-q"><h1>How many hours did you sleep last night?</h1><p>Optional. In the iPhone version this fills in from your Oura ring through Apple Health. Here, tap to enter it.</p></div>${stepper()}`;
   if(step==='mood')body=scale('mood','How was your mood today?','0 Very low','10 Very good');
   if(step==='stress')body=scale('stress','How stressed were you today?','0 None','10 Extreme');
-  if(step==='started')body=`<div class="hero-q"><h1>Did you start the day higher than you finished?</h1><p>Yes means the day got harder as it went on.</p></div><div class="choice">${yn('started',true,'Yes, it got harder')}${yn('started',false,'No')}</div>`;
+  if(step==='bucket')body=bucketScreen();
+  if(step==='started')body=`<div class="hero-q"><h1>Did your stress level decrease or increase during the day?</h1><p>Compare how you felt this morning with how you feel now.</p></div><div class="choice">${dirBtn('up','\u2191 Increased')}${dirBtn('same','\u2192 Stayed about the same')}${dirBtn('down','\u2193 Decreased')}</div>`;
   if(step==='trigger')body=`<div class="hero-q"><h1>Did something trigger an adverse response today?</h1><p>For example, a strong reaction to something you saw, smelt, heard or went through.</p></div><div class="choice">${yn('anyTrigger',true,'Yes')}${yn('anyTrigger',false,'No')}</div>`;
   if(step==='cats')body=catsScreen();
   if(step==='review')body=reviewScreen();
   return top+body;
 }
+function dirBtn(v,label){return `<button class="btn" data-act="dir" data-v="${v}" aria-pressed="${state.draft.d.stressDir===v}">${label}</button>`}
+function bucketScreen(){
+  const sel=state.draft.d.bucket||[];const n=sel.length;
+  const picked=BUCKET.filter(b=>sel.includes(b.id));
+  return `<div class="hero-q"><div class="bucket-title"><span class="bucket-ico">${bucketSVG(0,44)}</span><h1>How full is your personal stress bucket today?</h1></div>
+  <p class="small muted">The bucket represents your individual capacity or tolerance for stress.</p></div>
+  <div class="bucket-meter">${bucketSVG(n,96,'Stress bucket, '+n+' of 10 stressors selected')}<div><div class="bucket-count num">${n} of 10</div><div class="muted">${bucketLevel(n)}</div></div></div>
+  <p class="lbl" id="bucket-lbl">Select all that apply</p>
+  <div class="bucket-list" role="group" aria-labelledby="bucket-lbl">${BUCKET.map((b,i)=>`<button class="bitem" data-act="bucket" data-v="${b.id}" aria-pressed="${sel.includes(b.id)}"><span class="bbox" aria-hidden="true"></span><span><span class="btitle">${i+1}. ${esc(b.title)}</span><span class="bdesc">${esc(b.desc)}</span></span></button>`).join('')}</div>
+  ${picked.length?`<div class="card actions-card"><h2>Stop your bucket overflowing</h2><p class="small">To stop your stress bucket from overflowing, focus on small, immediate actions that turn off the tap or open a drain for each specific stressor:</p>${picked.map(actionItem).join('')}</div>`:''}
+  <details class="card allactions"><summary>See all ten immediate actions</summary><p class="small">To stop your stress bucket from overflowing, focus on small, immediate actions that turn off the tap or open a drain for each specific stressor:</p>${BUCKET.map(actionItem).join('')}</details>`;
+}
+const actionItem=b=>`<div class="action"><h3>${esc(b.title)}</h3><p>${esc(b.action)}</p></div>`;
 function yn(field,val,label){return `<button class="btn" data-act="yn" data-f="${field}" data-v="${val}" aria-pressed="${state.draft.d[field]===val}">${label}</button>`}
 function scale(field,q,lo,hi){
   const v=state.draft.d[field],E=EMO[field],b=E.band(v);
@@ -447,7 +512,8 @@ function reviewScreen(){
   ${line('Sleep',d.sleep==null?'Not entered':r1(d.sleep)+' h','sleep')}
   ${line('Mood',d.mood==null?'Skipped':d.mood+' / 10','mood')}
   ${line('Stress',d.stress==null?'Skipped':d.stress+' / 10','stress')}
-  ${line('Day got harder',d.started==null?'Not sure':d.started?'Yes':'No','started')}
+  ${line('Stress bucket',bucketText(d.bucket),'bucket')}
+  ${line('Stress during the day',dirText(d),'started')}
   ${line('Triggers',trigTxt,d.anyTrigger===true?'cats':'trigger')}</ul>
   <div class="stack" style="gap:6px"><label class="lbl" for="note">Anything else? (optional)</label><textarea class="field" id="note" data-input="note" maxlength="280" placeholder="A short note for yourself">${esc(d.note)}</textarea></div>`;
 }
@@ -480,9 +546,9 @@ function insightsView(){
   const tiles=`<div class="tiles">
    <div class="tile"><span class="t">Average mood</span><span class="n num">${cur.mood==null?'?':r1(cur.mood)}</span><span class="d">${cmp(cur.mood,prev.mood,'')}</span></div>
    <div class="tile"><span class="t">Average stress</span><span class="n num">${cur.stress==null?'?':r1(cur.stress)}</span><span class="d">${cmp(cur.stress,prev.stress,'')}</span></div>
-   <div class="tile"><span class="t">Days that got harder</span><span class="n num">${cur.escAnswered>=7?pct(cur.escRate):'?'}</span><span class="d">${cur.escAnswered>=7?`${Math.round(cur.escRate*cur.escAnswered)} of ${cur.escAnswered} answered days${cur.escAnswered<14?', early pattern':''}`:'Shows after 7 answered days'}</span></div>
+   <div class="tile"><span class="t">Days stress increased</span><span class="n num">${cur.escAnswered>=7?pct(cur.escRate):'?'}</span><span class="d">${cur.escAnswered>=7?`${Math.round(cur.escRate*cur.escAnswered)} of ${cur.escAnswered} answered days${cur.escAnswered<14?', early pattern':''}`:'Shows after 7 answered days'}</span></div>
    <div class="tile"><span class="t">Trigger days</span><span class="n num">${cur.trigDays}</span><span class="d">of ${cur.n} check ins</span></div></div>`;
-  return demoBanner()+`<h1>Insights</h1>`+rangeBtns+tiles+trendCard(keys)+triggerCard(keys)+patternsCard(keys)+summaryCard(keys,cur)+`<p class="disclaimer">${esc(DISCLAIMER)}</p>`;
+  return demoBanner()+`<h1>Insights</h1>`+rangeBtns+tiles+trendCard(keys)+triggerCard(keys)+bucketCard(keys)+patternsCard(keys)+summaryCard(keys,cur)+`<p class="disclaimer">${esc(DISCLAIMER)}</p>`;
 }
 function rolling(keys,f){return keys.map((k,i)=>{const v=[];for(let j=Math.max(0,i-6);j<=i;j++){const c=state.checkins[keys[j]];if(c&&c[f]!=null)v.push(c[f])}return v.length>=2?mean(v):null})}
 let chartKeys=[];
@@ -508,14 +574,14 @@ function trendCard(keys){
   if(mi>=0&&si>=0){let ym=y(mR[mi]),ys=y(sR[si]);if(Math.abs(ym-ys)<16){if(ym<ys){ym-=8;ys+=8}else{ym+=8;ys-=8}}
     lab=`<text x="${W-R+10}" y="${ym+4}" font-size="13" font-weight="700" fill="var(--ink)">Mood ${r1(mR[mi])}</text><text x="${W-R+10}" y="${ys+4}" font-size="13" font-weight="700" fill="var(--ink)">Stress ${r1(sR[si])}</text>`}
   const xl=[0,Math.floor((n-1)/2),n-1].filter((v,i,a)=>a.indexOf(v)===i).map((i,j,a)=>`<text x="${x(i)}" y="${H-8}" font-size="12" text-anchor="${a.length>1&&j===0?'start':a.length>1&&j===a.length-1?'end':'middle'}" fill="var(--ink-2)">${fmtShort(keys[i])}</text>`).join('');
-  const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mood and stress over the selected period, with days that got harder and trigger days marked">
+  const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mood and stress over the selected period, with days stress increased and trigger days marked">
    ${g}${dots}
    <path d="${line(mR)}" fill="none" stroke="var(--mood)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
    <path d="${line(sR)}" fill="none" stroke="var(--stress)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
    ${lab}
    <line x1="${L}" x2="${W-R}" y1="${esY}" y2="${esY}" stroke="var(--grid)"/><line x1="${L}" x2="${W-R}" y1="${trY}" y2="${trY}" stroke="var(--grid)"/>
    ${escM}${trM}
-   <text x="${W-R+10}" y="${esY+4}" font-size="12" fill="var(--ink-2)">Got harder</text><text x="${W-R+10}" y="${trY+4}" font-size="12" fill="var(--ink-2)">Trigger day</text>
+   <text x="${W-R+10}" y="${esY+4}" font-size="12" fill="var(--ink-2)">Stress rose</text><text x="${W-R+10}" y="${trY+4}" font-size="12" fill="var(--ink-2)">Trigger day</text>
    ${xl}
    <line id="xhair" x1="0" x2="0" y1="${T}" y2="${trY+6}" stroke="var(--ink-2)" stroke-dasharray="3 3" visibility="hidden"/>
    <rect id="hit" x="${L-6}" y="0" width="${W-L-R+12}" height="${H}" fill="transparent"/></svg>`;
@@ -533,6 +599,16 @@ function triggerCard(keys){
   const cnt=catCounts(keys);const rows=CATS.map(x=>({c:x.c,n:cnt[x.c]})).sort((a,b)=>b.n-a.n);const max=Math.max(1,...rows.map(r=>r.n));
   if(rows.every(r=>r.n===0))return `<div class="card"><h2>Triggers by type</h2><p class="muted">No triggers recorded in this period.</p></div>`;
   return `<div class="card"><h2>Triggers by type</h2><p class="small muted">Days with each type of trigger. Tap a type to see what it was.</p><div class="bars">${rows.map(r=>`<button class="barrow" data-act="drill" data-c="${r.c}" aria-expanded="${ui.drill===r.c}"><span class="lab">${CATNAME[r.c]}</span><span class="track"><span class="fill" style="display:block;width:${r.n/max*100}%"></span></span><span class="cnt num">${r.n}</span></button>${ui.drill===r.c?drillHTML(keys,r.c):''}`).join('')}</div></div>`;
+}
+function bucketCard(keys){
+  const cs=keys.map(k=>state.checkins[k]).filter(c=>c&&Array.isArray(c.bucket));
+  if(!cs.length)return `<div class="card"><h2>What fills your stress bucket</h2><p class="muted">No stress bucket answers in this period yet.</p></div>`;
+  const cnt=Object.fromEntries(BUCKET.map(b=>[b.id,0]));cs.forEach(c=>c.bucket.forEach(id=>{if(id in cnt)cnt[id]++}));
+  const rows=BUCKET.map(b=>({b,n:cnt[b.id]})).filter(r=>r.n>0).sort((a,b)=>b.n-a.n);const max=Math.max(1,...rows.map(r=>r.n));
+  const avg=mean(cs.map(c=>c.bucket.length));
+  return `<div class="card"><div class="bucket-meter">${bucketSVG(Math.round(avg),72,'Average bucket, '+r1(avg)+' of 10')}<div><h2>What fills your stress bucket</h2><p class="small muted">On average ${r1(avg)} of 10 stressors a day, over ${cs.length} days.</p></div></div>
+  ${rows.length?`<div class="bars">${rows.map(r=>`<div class="barrow"><span class="lab">${esc(r.b.short)}</span><span class="track"><span class="fill" style="display:block;width:${r.n/max*100}%;background:var(--mood)"></span></span><span class="cnt num">${r.n}</span></div>`).join('')}</div>
+  <details class="allactions"><summary>Immediate action for your top stressor</summary><div class="action"><h3>${esc(rows[0].b.title)}</h3><p>${esc(rows[0].b.action)}</p></div></details>`:'<p class="muted">Your bucket was empty on every answered day.</p>'}</div>`;
 }
 function drillHTML(keys,cat){
   const tc={},ic={mild:0,moderate:0,strong:0};let days=0;
@@ -556,12 +632,12 @@ function patternsCard(keys){
     const sent=lo.length>=5&&hi.length>=5?`After nights under 6 hours, your stress averaged <b>${r1(mean(lo.map(c=>c.stress)))}</b>, compared with <b>${r1(mean(hi.map(c=>c.stress)))}</b> after 7 hours or more.`:'Not enough short and long nights yet to compare them.';
     out+=`<div class="card pattern"><h3>Sleep and stress</h3><p>${sent}</p><p class="small muted">Spearman correlation ${rho.toFixed(2)}: ${strength(rho)} link. Based on ${ps.length} days.</p>${scatterSVG(ps)}${caveat}</div>`;
   }else out+=`<div class="card pattern"><h3>Sleep and stress</h3><p class="muted">Needs sleep and stress on at least 14 days. You have ${ps.length}.</p></div>`;
-  /* Trigger type vs day got harder */
+  /* Trigger type vs stress increasing during the day */
   const ans=cs.filter(c=>c.started!=null);const lift=[];
   CATS.forEach(x=>{const w=ans.filter(c=>c.anyTrigger&&c.trig[x.c]),wo=ans.filter(c=>!(c.anyTrigger&&c.trig[x.c]));if(w.length>=5&&wo.length>=5){const a=w.filter(c=>c.started).length/w.length,b=wo.filter(c=>c.started).length/wo.length;lift.push({c:x.c,a,b,d:a-b,nw:w.length,nwo:wo.length})}});
   lift.sort((p,q)=>q.d-p.d);
-  out+=`<div class="card pattern"><h3>Triggers and days that got harder</h3>${lift.length?`<p>${lift[0].d>0.05?`${CATNAME[lift[0].c]} days ended worse than they started <b>${pct(lift[0].a)}</b> of the time, compared with <b>${pct(lift[0].b)}</b> on other days.`:'No trigger type stands out yet.'}</p>
-   <div class="drill"><table><thead><tr><td class="small muted">Trigger type</td><td class="small muted">Got harder: with / without</td></tr></thead><tbody>${lift.map(r=>`<tr><td>${CATNAME[r.c]} <span class="small muted">(${r.nw} days)</span></td><td>${pct(r.a)} / ${pct(r.b)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Needs at least 5 days with and 5 days without a trigger type.</p>'}${caveat}</div>`;
+  out+=`<div class="card pattern"><h3>Triggers and stress rising during the day</h3>${lift.length?`<p>${lift[0].d>0.05?`${CATNAME[lift[0].c]} days saw stress increase during the day <b>${pct(lift[0].a)}</b> of the time, compared with <b>${pct(lift[0].b)}</b> on other days.`:'No trigger type stands out yet.'}</p>
+   <div class="drill"><table><thead><tr><td class="small muted">Trigger type</td><td class="small muted">Stress rose: with / without</td></tr></thead><tbody>${lift.map(r=>`<tr><td>${CATNAME[r.c]} <span class="small muted">(${r.nw} days)</span></td><td>${pct(r.a)} / ${pct(r.b)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Needs at least 5 days with and 5 days without a trigger type.</p>'}${caveat}</div>`;
   /* Trigger type vs stress */
   const st=cs.filter(c=>c.stress!=null);const sd=[];
   CATS.forEach(x=>{const w=st.filter(c=>c.anyTrigger&&c.trig[x.c]),wo=st.filter(c=>!(c.anyTrigger&&c.trig[x.c]));if(w.length>=5&&wo.length>=5)sd.push({c:x.c,d:mean(w.map(c=>c.stress))-mean(wo.map(c=>c.stress)),n:w.length})});
@@ -584,14 +660,31 @@ function scatterSVG(ps){
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scatter plot of sleep hours against stress" style="width:100%;height:auto">${g}${dots}${tl}<text x="${L+pw/2}" y="${H-6}" text-anchor="middle" font-size="12" fill="var(--ink-2)">Sleep the night before (hours)</text><text x="12" y="${T+ph/2}" transform="rotate(-90 12 ${T+ph/2})" text-anchor="middle" font-size="12" fill="var(--ink-2)">Stress (0 to 10)</text></svg><p class="small muted">Each dot is one day. The dashed line shows the overall trend.</p>`;
 }
 function summaryCard(keys,cur){
-  return `<div class="card"><h2>Summary for your clinician</h2><p class="small muted">A plain text summary of this period you can copy into an email or show at an appointment. Only shared if you choose to.</p><button class="btn small" data-act="summary">Create summary</button></div>`;
+  return `<div class="card"><h2>Summary for your clinician</h2><p class="small muted">A plain text summary of this period. Email it to your clinician or emergency contact, copy it, or show it at an appointment. Only shared if you choose to.</p><button class="btn small" data-act="summary">Create summary</button></div>`;
+}
+function greetName(n){const w=n.trim().split(/\s+/);return /^(dr|mr|mrs|ms|miss|prof|professor)\.?$/i.test(w[0])&&w.length>1?w[0]+' '+w[w.length-1]:w[0]}
+function mailtoHref(to,name){
+  const keys=rangeKeys(ui.range);
+  const subject=`NAPALM summary, ${fmtShort(keys[0])} to ${fmtShort(keys[keys.length-1])}`;
+  const body=(name?`Hi ${greetName(name)},\n\nHere is my NAPALM check in summary.\n\n`:'')+clinicianText();
+  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g,'\r\n'))}`;
+}
+function sendButtons(){
+  const {clin,ice}=contactsOf();const out=[];
+  if(validEmail(clin.email))out.push(`<a class="btn primary" href="${mailtoHref(clin.email,clin.name)}">${ICON_MAIL}<span>Email to ${esc(clin.name||'my clinician')}</span></a>`);
+  if(validEmail(ice.email))out.push(`<a class="btn ${out.length?'':'primary'}" href="${mailtoHref(ice.email,ice.name)}">${ICON_MAIL}<span>Email to ${esc(ice.name||'my emergency contact')}</span></a>`);
+  const note=out.length?'<p class="small muted">This opens your email app with the summary filled in. Nothing is sent until you press Send there, and you can edit it first.</p>'
+    :'<p class="small muted">To email this summary, add an email address under Clinician details or In Case of Emergency in Settings.</p><button class="btn small" data-act="tab" data-v="settings">Open Settings</button>';
+  return out.join('')+note;
 }
 function clinicianText(){
   const keys=rangeKeys(ui.range),s=stats(keys),cnt=catCounts(keys);
   const top=Object.entries(cnt).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,n])=>`  ${CATNAME[c]}: ${n} days`).join('\n')||'  None recorded';
   const sl=keys.map(k=>state.checkins[k]).filter(c=>c&&c.sleep!=null).map(c=>c.sleep);
+  const bk=keys.map(k=>state.checkins[k]).filter(c=>c&&Array.isArray(c.bucket));const bc={};bk.forEach(c=>c.bucket.forEach(id=>bc[id]=(bc[id]||0)+1));
+  const btop=Object.entries(bc).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([id,n])=>`  ${BUCKET_BY[id]?BUCKET_BY[id].title:id}: ${n} days`).join('\n')||'  None recorded';
   const notes=keys.map(k=>state.checkins[k]).filter(c=>c&&c.note).map(c=>`  ${fmtShort(c.date)}: ${c.note}`).join('\n');
-  return `NAPALM self monitoring summary\nPeriod: ${fmtDate(keys[0])} to ${fmtDate(keys[keys.length-1])}\nCheck ins: ${s.n} of ${keys.length} days\n\nAverage mood (0 very low, 10 very good): ${s.mood==null?'n/a':r1(s.mood)}\nAverage stress (0 none, 10 extreme): ${s.stress==null?'n/a':r1(s.stress)}\nDays that got harder: ${s.escRate==null?'n/a':pct(s.escRate)+' of '+s.escAnswered+' answered days'}\nAverage sleep: ${sl.length?r1(mean(sl))+' h ('+sl.length+' nights)':'n/a'}\nTrigger days: ${s.trigDays}\n\nMost frequent trigger types:\n${top}\n${notes?'\nNotes:\n'+notes+'\n':''}\nSelf reported data from a non clinical tracking app.`;
+  return `NAPALM self monitoring summary\nPeriod: ${fmtDate(keys[0])} to ${fmtDate(keys[keys.length-1])}\nCheck ins: ${s.n} of ${keys.length} days\n\nAverage mood (0 very low, 10 very good): ${s.mood==null?'n/a':r1(s.mood)}\nAverage stress (0 none, 10 extreme): ${s.stress==null?'n/a':r1(s.stress)}\nDays stress increased during the day: ${s.escRate==null?'n/a':pct(s.escRate)+' of '+s.escAnswered+' answered days'}\nAverage stress bucket: ${bk.length?r1(mean(bk.map(c=>c.bucket.length)))+' of 10 stressors':'n/a'}\nAverage sleep: ${sl.length?r1(mean(sl))+' h ('+sl.length+' nights)':'n/a'}\nTrigger days: ${s.trigDays}\n\nMost frequent trigger types:\n${top}\n\nMost frequent stress bucket items:\n${btop}\n${notes?'\nNotes:\n'+notes+'\n':''}\nSelf reported data from a non clinical tracking app.`;
 }
 
 /* Settings */
@@ -602,9 +695,8 @@ function settingsView(){
   ${!storageOK?'<div class="banner"><span class="small">This browser is blocking storage, so entries last only until you close the page.</span></div>':''}
   <div class="card"><h2>Reminder</h2><label class="lbl" for="rem">Check in time</label><input class="field num" type="time" id="rem" data-input="reminder" value="${esc(st.reminder)}">
   <p class="small muted">The iPhone app sends a discreet notification at this time: "Your evening check in is ready." A web page cannot send reminders, so set a phone alarm for now.</p></div>
-  <div class="card"><h2>Your support person</h2><p class="small muted">Shown in Get support, so you can reach them in one tap.</p>
-  <label class="lbl" for="cn">Name</label><input class="field" id="cn" data-input="contactName" value="${esc(st.contactName)}" maxlength="40">
-  <label class="lbl" for="cp">Phone number</label><input class="field num" id="cp" data-input="contactPhone" type="tel" value="${esc(st.contactPhone)}" maxlength="20"></div>
+  ${contactCard('clinician','Clinician details','Your psychologist, GP or counsellor. You can email them your clinician summary from Insights.')}
+  ${contactCard('ice','In Case of Emergency','A trusted person to reach quickly. They appear in Get support and on the Support page, and you can email them your summary.')}
   <div class="card"><h2>Privacy</h2><p class="small">Your entries are stored only in this browser on this device. NAPALM has no server and sends nothing anywhere.</p>
   <h3>Passcode lock</h3><p class="small muted">${locked?'On. Your data is encrypted with AES 256 and needs your passcode to open.':'Off. Turn it on to encrypt your data with a passcode.'}</p>
   ${ui.lockStep==='set'?`<form class="stack" data-form="setlock"><label class="lbl" for="p1">New passcode (4 to 8 digits)</label><input class="field num" id="p1" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required><label class="lbl" for="p2">Enter it again</label><input class="field num" id="p2" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required>${ui.lockErr?`<p role="alert" style="color:var(--peach)">${esc(ui.lockErr)}</p>`:''}<div class="row"><button class="btn primary small" type="submit">Turn on lock</button><button class="btn small" type="button" data-act="lock-cancel">Cancel</button></div></form>`
@@ -618,7 +710,19 @@ function settingsView(){
   <div class="card"><h2>Example data</h2><p class="small muted">Load 60 days of made up entries to explore Insights. You can clear them at any time without touching your own entries.</p><div class="row">${state.demo?'<button class="btn small" data-act="demo-clear">Clear example data</button>':'<button class="btn small" data-act="demo-load">Load example data</button>'}</div></div>
   <div class="card"><h2>Delete everything</h2><p class="small muted">Removes every check in, tag, setting and passcode from this device. This cannot be undone.</p>
   ${ui.confirmDelete?`<p role="alert"><b>Are you sure? All your data will be erased.</b></p><div class="row"><button class="btn warm small" data-act="del-confirm">Yes, delete everything</button><button class="btn small" data-act="del-cancel">Cancel</button></div>`:`<button class="btn warm small" data-act="del-ask">Delete everything</button>`}</div>
-  <div class="card"><h2>About</h2><p class="small">${esc(DISCLAIMER)}</p><p class="small muted">Web version. Add it to your home screen to use it like an app, including offline. A native iPhone app would add Apple Health and Oura data, Face ID and notifications.</p></div>`;
+  <div class="card"><h2>About</h2><p class="small">${esc(DISCLAIMER)}</p><p class="small muted">Contact details stay on this device with the rest of your data. Web version. Add it to your home screen to use it like an app, including offline. A native iPhone app would add Apple Health and Oura data, Face ID and notifications.</p></div>`;
+}
+
+/* Contact cards in Settings */
+function contactCard(key,title,help){
+  const c=state.settings[key]||{name:'',email:'',phone:''};const emailBad=c.email&&!validEmail(c.email);
+  return `<div class="card"><h2>${title}</h2><p class="small muted">${help}</p>
+  ${canPickContacts()?`<button class="btn small" data-act="pick-contact" data-v="${key}">${ICON_PHONE}<span>Add from contacts</span></button><p class="small muted">Or type the details:</p>`:`<p class="small muted">Adding from contacts works in Chrome on Android. On this device, type the details below.</p>`}
+  <label class="lbl" for="${key}-name">Name</label><input class="field" id="${key}-name" data-input="${key}.name" value="${esc(c.name)}" maxlength="60" autocomplete="off">
+  <label class="lbl" for="${key}-email">Email</label><input class="field" id="${key}-email" data-input="${key}.email" type="email" inputmode="email" value="${esc(c.email)}" maxlength="120" autocomplete="off">
+  <p class="small" id="${key}-email-err" style="color:var(--peach);${emailBad?'':'display:none'}">That email address does not look right.</p>
+  <label class="lbl" for="${key}-phone">Phone</label><input class="field num" id="${key}-phone" data-input="${key}.phone" type="tel" value="${esc(c.phone)}" maxlength="20" autocomplete="off">
+  ${c.name||c.email||c.phone?`<button class="btn link" data-act="clear-contact" data-v="${key}">Remove these details</button>`:''}</div>`;
 }
 
 /* Support page */
@@ -630,7 +734,10 @@ function supportCard(c){
 function supportView(){
   return `<div class="hero-q"><h1>Support lines</h1><p>Free and confidential. Tap a button to call or text.</p></div>
   <div class="banner"><span><b>In immediate danger?</b> Call 000.</span><a class="btn warm small" href="tel:000">${ICON_PHONE}<span>Call 000</span></a></div>
-  ${ownContact().length?supportCard({name:ownContact()[0].name,call:ownContact()[0].num,text:ownContact()[0].num,hours:'Your own contact',who:'Your support person, set in Settings.'}):''}
+  ${(()=>{const {clin,ice}=contactsOf();let h='';
+    if(ice.phone)h+=supportCard({name:'In Case of Emergency: '+(ice.name||'my contact'),call:ice.phone,text:ice.phone,hours:'Your own contact',who:'Set in Settings.'});
+    if(clin.phone)h+=supportCard({name:'My clinician: '+(clin.name||'clinician'),call:clin.phone,hours:'Your own contact',who:'Set in Settings.'});
+    return h})()}
   ${SUPPORT.map(supportCard).join('')}
   <p class="small muted">If a button does not open your phone app, dial the number shown. Calls to 1800 numbers are free from most phones.</p>`;
 }
@@ -638,7 +745,11 @@ function supportView(){
 /* Layers: support sheet, safety card, summary */
 function contactRows(list){return list.map(c=>`<div class="contact"><div><div><b>${esc(c.name)}</b></div><div class="who">${esc(c.who)}</div></div><a class="btn ${c.num==='000'?'warm':'primary'}" href="tel:${digits(c.num)}">${ICON_PHONE}<span>${esc(c.num)}</span></a></div>`).join('')}
 const sheetList=()=>[{name:'Emergency',num:'000',who:'Immediate danger'}].concat(SUPPORT.map(c=>({name:c.name,num:c.call,who:c.hours==='24/7'?'24/7':c.hours})),CONTACTS.filter(c=>c.name==='Defence All Hours Support Line'||c.name==='1800RESPECT'));
-function ownContact(){const s=state?state.settings:{};return s.contactPhone?[{name:s.contactName||'My support person',num:s.contactPhone,who:'Your own contact'}]:[]}
+function contactsOf(){const s=state?state.settings:{};return {clin:s.clinician||{name:'',email:'',phone:''},ice:s.ice||{name:'',email:'',phone:''}}}
+function ownContact(){const {ice}=contactsOf();return ice.phone?[{name:(ice.name||'My emergency contact')+' (emergency contact)',num:ice.phone,who:'Your In Case of Emergency contact'}]:[]}
+function migrateSettings(){const s=state.settings;if(!s.clinician)s.clinician={name:'',email:'',phone:''};if(!s.ice)s.ice={name:s.contactName||'',email:'',phone:s.contactPhone||''};delete s.contactName;delete s.contactPhone}
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e||'');
+const canPickContacts=()=>'contacts' in navigator&&'select' in (navigator.contacts||{});
 function renderLayer(){
   let h='';
   if(ui.sheet==='support'){
@@ -649,10 +760,10 @@ function renderLayer(){
     const pick=ownContact().concat(sheetList().filter(c=>c.name==='Lifeline'||c.name.startsWith('Open Arms'))).slice(0,3);
     const s=state.settings;
     h=`<div class="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="saf-h"><h2 id="saf-h">The last few days look really hard.</h2><p>You don't have to manage this alone. Talking to someone can help, even just for a few minutes.</p>${contactRows(pick)}
-    ${s.contactPhone?`<a class="btn block" href="sms:${esc(s.contactPhone.replace(/\s/g,''))}?&body=${encodeURIComponent("I'm having a rough few days. Can you give me a call when you can?")}">Message ${esc(s.contactName||'my support person')}</a>`:'<p class="small muted">Add your own support person in Settings to message them from here.</p>'}
+    ${s.ice&&s.ice.phone?`<a class="btn block" href="sms:${esc(digits(s.ice.phone))}?&body=${encodeURIComponent("I'm having a rough few days. Can you give me a call when you can?")}">${ICON_TEXT}<span>Message ${esc(s.ice.name||'my emergency contact')}</span></a>`:'<p class="small muted">Add an In Case of Emergency contact in Settings to message them from here.</p>'}
     <button class="btn block" data-act="support">See all support services</button><button class="btn link" data-act="snooze">Not now</button><p class="small muted">Your entry has been saved. NAPALM never contacts anyone for you.</p></div></div>`;
   }else if(ui.sheet==='summary'){
-    h=`<div class="overlay" data-act="close-sheet"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sum-h" data-stop="1"><div class="row" style="justify-content:space-between"><h2 id="sum-h">Clinician summary</h2><button class="btn small" data-act="close-sheet">Close</button></div><textarea class="field num" id="exportbox" readonly style="min-height:300px;font-size:14px">${esc(clinicianText())}</textarea><button class="btn primary" data-act="copy">Copy to clipboard</button></div></div>`;
+    h=`<div class="overlay" data-act="close-sheet"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sum-h" data-stop="1"><div class="row" style="justify-content:space-between"><h2 id="sum-h">Clinician summary</h2><button class="btn small" data-act="close-sheet">Close</button></div><textarea class="field num" id="exportbox" readonly style="min-height:260px;font-size:14px">${esc(clinicianText())}</textarea>${sendButtons()}<button class="btn" data-act="copy">Copy to clipboard</button></div></div>`;
   }
   layer.innerHTML=h;
 }
@@ -664,7 +775,7 @@ function afterRender(){
   const W=640,L=36,R=104,n=chartKeys.length;
   const move=e=>{const b=svg.getBoundingClientRect();const sx=(e.clientX-b.left)/b.width*W;let i=n<=1?0:Math.round((sx-L)/((W-L-R)/(n-1)));i=Math.max(0,Math.min(n-1,i));
     const k=chartKeys[i],c=state.checkins[k];const px=L+(n<=1?(W-L-R)/2:i*(W-L-R)/(n-1));xh.setAttribute('x1',px);xh.setAttribute('x2',px);xh.setAttribute('visibility','visible');
-    tip.innerHTML=`<b>${fmtDate(k)}</b><br>`+(c?`Mood <b>${c.mood==null?'skipped':c.mood}</b> · Stress <b>${c.stress==null?'skipped':c.stress}</b>${c.started?'<br>Day got harder':''}${c.anyTrigger?'<br>Triggers: '+(Object.keys(c.trig).map(x=>CATNAME[x]).join(', ')||'type not recorded'):''}${c.sleep!=null?'<br>Sleep '+r1(c.sleep)+' h':''}`:'No check in');
+    tip.innerHTML=`<b>${fmtDate(k)}</b><br>`+(c?`Mood <b>${c.mood==null?'skipped':c.mood}</b> · Stress <b>${c.stress==null?'skipped':c.stress}</b>${c.started?'<br>Stress rose during the day':''}${c.bucket&&c.bucket.length?'<br>Bucket: '+c.bucket.length+' of 10':''}${c.anyTrigger?'<br>Triggers: '+(Object.keys(c.trig).map(x=>CATNAME[x]).join(', ')||'type not recorded'):''}${c.sleep!=null?'<br>Sleep '+r1(c.sleep)+' h':''}`:'No check in');
     tip.style.display='block';const wb=wrap.getBoundingClientRect();let left=(px/W)*b.width+(b.left-wb.left)+12;if(left+tip.offsetWidth>wb.width)left=left-tip.offsetWidth-24;tip.style.left=Math.max(0,left)+'px';tip.style.top='8px'};
   const hit=svg.querySelector('#hit');hit.addEventListener('pointermove',move);hit.addEventListener('pointerdown',move);
   hit.addEventListener('pointerleave',()=>{tip.style.display='none';xh.setAttribute('visibility','hidden')});
@@ -698,7 +809,12 @@ function loadDemo(){
     let mood=Math.round(Math.max(1,Math.min(10,8.6-0.62*stress+gauss()*0.8)));
     const started=rnd()<0.12+(crowd?0.45:0)+(sleep<6?0.12:0)+(smell?0.2:0);
     const any=Object.keys(trig).length>0;
-    const rec={date:d,created:Date.now(),updated:Date.now(),tz:'Australia/Brisbane',mood:rnd()<0.04?null:mood,stress,started:rnd()<0.05?null:started,anyTrigger:any,trig:any?trig:{},categoryUnknown:false,sleep:rnd()<0.06?null:sleep,sleepSource:'manual',note:'',secs:40+Math.floor(rnd()*70),skipped:[],safetyShown:false,demo:true};
+    const bucket=[];const want=Math.max(0,Math.min(7,Math.round(stress/2+gauss()*0.8)));
+    if(sleep<6)bucket.push('sleep');if(!weekend&&rnd()<0.6)bucket.push('workload');
+    const pool=['money','job','health','screens','home','care','change','alone'];while(bucket.length<want&&pool.length)bucket.push(pool.splice(Math.floor(rnd()*pool.length),1)[0]);
+    bucket.sort((a,b)=>BUCKET.findIndex(x=>x.id===a)-BUCKET.findIndex(x=>x.id===b));
+    const stressDir=started?'up':(rnd()<0.55?'same':'down');
+    const rec={date:d,created:Date.now(),updated:Date.now(),tz:'Australia/Brisbane',mood:rnd()<0.04?null:mood,stress,bucket:rnd()<0.05?null:bucket,stressDir,started:rnd()<0.05?null:started,anyTrigger:any,trig:any?trig:{},categoryUnknown:false,sleep:rnd()<0.06?null:sleep,sleepSource:'manual',note:'',secs:40+Math.floor(rnd()*70),skipped:[],safetyShown:false,demo:true};
     Object.values(rec.trig).forEach(v=>v.sel.forEach(id=>{const t=tagById(id);t.uses=(t.uses||0)+1;t.last=Date.now()}));
     state.checkins[d]=rec;
   }
@@ -712,9 +828,9 @@ function clearDemo(){
 /* ---------- Export / import ---------- */
 function toCSV(){
   const q=v=>{const s=v==null?'':String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-  const rows=[['date','mood','stress','started_higher_finished_lower','any_trigger','trigger_categories','trigger_tags','intensities','sleep_hours','note','example_data']];
+  const rows=[['date','mood','stress','stress_bucket_count','stress_bucket_items','stress_during_day','any_trigger','trigger_categories','trigger_tags','intensities','sleep_hours','note','example_data']];
   Object.keys(state.checkins).sort().forEach(k=>{const c=state.checkins[k];const cats=Object.keys(c.trig||{});
-    rows.push([k,c.mood,c.stress,c.started==null?'':c.started?'yes':'no',c.anyTrigger==null?'':c.anyTrigger?'yes':'no',cats.join('; '),cats.map(x=>c.trig[x].sel.map(id=>tagById(id)?tagById(id).label:'').join(' | ')).join('; '),cats.map(x=>c.trig[x].intensity||'').join('; '),c.sleep,c.note,c.demo?'yes':'no'])});
+    rows.push([k,c.mood,c.stress,Array.isArray(c.bucket)?c.bucket.length:'',Array.isArray(c.bucket)?c.bucket.map(id=>BUCKET_BY[id]?BUCKET_BY[id].title:id).join('; '):'',c.stressDir||(c.started==null?'':c.started?'up':''),c.anyTrigger==null?'':c.anyTrigger?'yes':'no',cats.join('; '),cats.map(x=>c.trig[x].sel.map(id=>tagById(id)?tagById(id).label:'').join(' | ')).join('; '),cats.map(x=>c.trig[x].intensity||'').join('; '),c.sleep,c.note,c.demo?'yes':'no'])});
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
 
@@ -733,9 +849,11 @@ document.addEventListener('click',async e=>{
     case 'start':ui.after=null;startCheckin();break;
     case 'dismiss-after':ui.after=null;render();break;
     case 'close-flow':ui.tab='today';save();render();toast('Your answers are kept. Resume any time today.');break;
-    case 'next':go(1);break;
+    case 'next':if(curStep()==='bucket'&&d.bucket==null){d.bucket=[];unSkip('bucket')}go(1);break;
+    case 'bucket':{if(!d.bucket)d.bucket=[];d.bucket=d.bucket.includes(v)?d.bucket.filter(x=>x!==v):d.bucket.concat(v);d.bucket.sort((a,b)=>BUCKET.findIndex(x=>x.id===a)-BUCKET.findIndex(x=>x.id===b));unSkip('bucket');save();render();break}
+    case 'dir':d.stressDir=v;d.started=v==='up';unSkip('started');save();render();setTimeout(()=>go(1),180);break;
     case 'back':go(-1);break;
-    case 'skip':{const st=curStep();const map={sleep:'sleep',mood:'mood',stress:'stress',started:'started',trigger:'anyTrigger'};const f=map[st];if(f){d[f]=null;markSkip(f)}go(1);break}
+    case 'skip':{const st=curStep();const map={sleep:'sleep',mood:'mood',stress:'stress',bucket:'bucket',started:'started',trigger:'anyTrigger'};const f=map[st];if(f){d[f]=null;markSkip(f)}if(st==='started')d.stressDir=null;go(1);break}
     case 'finish':state.draft.step=steps(d).length-1;save();render();window.scrollTo(0,0);break;
     case 'goto':state.draft.step=Number(v);save();render();window.scrollTo(0,0);break;
     case 'yn':{const f=el.dataset.f;d[f]=v==='true';unSkip(f);save();render();setTimeout(()=>go(1),180);break}
@@ -754,6 +872,10 @@ document.addEventListener('click',async e=>{
     case 'range':ui.range=v==='all'?'all':Number(v);ui.drill=null;render();break;
     case 'drill':ui.drill=ui.drill===el.dataset.c?null:el.dataset.c;render();break;
     case 'summary':ui.sheet='summary';render();break;
+    case 'pick-contact':{try{const res=await navigator.contacts.select(['name','email','tel'],{multiple:false});const c=res&&res[0];if(!c)break;
+      state.settings[v]={name:(c.name&&c.name[0])||'',email:(c.email&&c.email[0])||'',phone:(c.tel&&c.tel[0])||''};save();render();toast('Contact added. Check the details are right.')}
+      catch(err){toast('Could not open your contacts. Type the details instead.')}break}
+    case 'clear-contact':state.settings[v]={name:'',email:'',phone:''};save();render();toast('Details removed.');break;
     case 'demo-load':loadDemo();ui.tab='insights';render();toast('Example data loaded.');break;
     case 'demo-clear':clearDemo();render();toast('Example data cleared.');break;
     case 'export':ui.exportText=v==='csv'?toCSV():JSON.stringify(state,null,1);render();break;
@@ -777,15 +899,17 @@ document.addEventListener('input',e=>{
   const k=el.dataset.input;if(!k)return;
   if(k==='note'){state.draft.d.note=el.value.slice(0,280);save()}
   else if(k==='place'){ensureTrig(el.dataset.c).place=el.value;save()}
-  else if(k==='reminder'||k==='contactName'||k==='contactPhone'){state.settings[k]=el.value;save()}
+  else if(k==='reminder'){state.settings.reminder=el.value;save()}
+  else if(/^(clinician|ice)\.(name|email|phone)$/.test(k)){const [who,f]=k.split('.');state.settings[who][f]=el.value.trim();save();
+    if(f==='email'){const err=document.getElementById(who+'-email-err');if(err)err.style.display=el.value.trim()&&!validEmail(el.value.trim())?'':'none'}}
 });
 document.addEventListener('change',async e=>{
   if(e.target.id!=='importfile')return;const f=e.target.files[0];if(!f)return;
-  try{const obj=JSON.parse(await f.text());if(!obj||obj.v!==1||!obj.checkins)throw new Error('format');state=obj;state.draft=null;save();render();toast('Backup restored.')}catch(err){toast('That file is not a NAPALM backup.')}
+  try{const obj=JSON.parse(await f.text());if(!obj||obj.v!==1||!obj.checkins)throw new Error('format');state=obj;state.draft=null;migrateSettings();save();render();toast('Backup restored.')}catch(err){toast('That file is not a NAPALM backup.')}
 });
 document.addEventListener('submit',async e=>{
   e.preventDefault();const form=e.target.dataset.form;
-  if(form==='unlock'){const pass=document.getElementById('unlock-pass').value;try{const env=JSON.parse(lsGet(EKEY));const key=await deriveKey(pass,unb64(env.salt));const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(env.iv)},key,unb64(env.ct));state=JSON.parse(new TextDecoder().decode(pt));cryptoKey=key;saltB64=env.salt;ui.locked=false;ui.lockErr='';render()}catch(err){ui.lockErr='That passcode did not work. Try again.';render()}}
+  if(form==='unlock'){const pass=document.getElementById('unlock-pass').value;try{const env=JSON.parse(lsGet(EKEY));const key=await deriveKey(pass,unb64(env.salt));const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(env.iv)},key,unb64(env.ct));state=JSON.parse(new TextDecoder().decode(pt));migrateSettings();cryptoKey=key;saltB64=env.salt;ui.locked=false;ui.lockErr='';render()}catch(err){ui.lockErr='That passcode did not work. Try again.';render()}}
   if(form==='setlock'){const p1=document.getElementById('p1').value,p2=document.getElementById('p2').value;if(!/^\d{4,8}$/.test(p1)){ui.lockErr='Use 4 to 8 digits.';render();return}if(p1!==p2){ui.lockErr='The two passcodes do not match.';render();return}
     const salt=crypto.getRandomValues(new Uint8Array(16));cryptoKey=await deriveKey(p1,salt);saltB64=b64(salt);ui.lockStep=null;ui.lockErr='';await persist();render();toast('Passcode lock is on. Your data is encrypted.')}
 });
@@ -796,6 +920,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.sheet){ui.sheet=
   if(lsGet(EKEY)){ui.locked=true;render();return}
   try{const raw=lsGet(KEY);state=raw?JSON.parse(raw):freshState()}catch(e){state=freshState()}
   if(!state.tags||!state.checkins)state=freshState();
+  migrateSettings();
   if(state.draft&&state.draft.date!==todayKey())state.draft=null;
   render();
 })();
